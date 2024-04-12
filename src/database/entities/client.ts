@@ -15,7 +15,7 @@ export class Client {
     @Column()
     password: string
 
-    @Column()
+    @Column({ default: 0 })
     balance: number
 
     @CreateDateColumn({type: "datetime"})

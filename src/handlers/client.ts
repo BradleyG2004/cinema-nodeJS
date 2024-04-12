@@ -8,9 +8,6 @@ import { sign } from "jsonwebtoken";
 import { Token } from "../database/entities/token";
 
 export const ClientHandler = (app: express.Express) => {
-    app.get("/health", (req: Request, res: Response) => {
-        res.send({ "message": "hello world" })
-    })
     app.post('/auth/signup', async (req: Request, res: Response) => {
         res.send({"req":req.body})
         try {

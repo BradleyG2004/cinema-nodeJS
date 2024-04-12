@@ -3,7 +3,7 @@ import { AppDataSource } from "../../database/database";
 import { Token } from "../../database/entities/token";
 import { verify } from "jsonwebtoken";
 
-export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const coordMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers['authorization'];
     if (!authHeader) return res.status(401).json({"error": "Unauthorized"});
 
@@ -15,10 +15,10 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     if (!tokenFound) {
         return res.status(403).json({"error": "Access Forbidden"})
     }
-    const secret = process.env.JWT_SECRET ?? ""
-    verify(token, secret, (err, user) => {
+    const secret = process.env.JWT_SECRET ?? "NoNotThis"
+    verify(token, secret, (err, coordinator) => {
         if (err) return res.status(403).json({"error": "Access Forbidden"});
-        (req as any).user = user;
+        (req as any).user = coordinator;
         next();
     });
 }
