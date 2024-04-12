@@ -48,3 +48,18 @@ export const roomIdValidation = Joi.object<RoomIdRequest>({
 export interface RoomIdRequest {
     id: number
 }
+
+export const updateRoomValidation = Joi.object<UpdateRoomRequest>({
+    id: Joi.number().required(),
+    state:Joi.boolean()
+    .required(),
+    authorization: Joi.string().required()
+
+})
+
+export interface UpdateRoomRequest {
+    id: number
+    state:boolean
+    authorization:string
+
+}

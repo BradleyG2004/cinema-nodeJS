@@ -1,9 +1,15 @@
 import { DataSource } from "typeorm";
 import { Room } from "../database/entities/room";
+import { Token } from "../database/entities/token";
+import { Coordinator } from "../database/entities/coordinator";
 
 export interface ListRoomFilter {
     limit: number
     page: number
+}
+
+export interface UpdateRoomParams {
+    state:boolean
 }
 
 export class RoomUsecase {
@@ -20,5 +26,28 @@ export class RoomUsecase {
             rooms,
             totalCount
         }
+    }
+
+    async updateRoom(id: number,authorization:string ,{ state }: UpdateRoomParams): Promise<Room | Coordinator |number| Token|null> {
+        const repo = this.db.getRepository(Room)
+        const roomfound = await repo.findOneBy({ id })
+        if (roomfound === null) return null   
+
+        const repo1=this.db.getRepository(Token)
+        const tokenfound = await repo1.findOne({ 
+            where: { token: authorization },
+            relations: ['coordinator'] })
+        if (tokenfound === null) return null
+    
+        const user = tokenfound.coordinator;
+        const repo2 = this.db.getRepository(Coordinator);
+        
+        user.room=[roomfound]
+        const maintain = await repo2.save(user)
+
+        roomfound.state = state
+
+        const roomUpdate = await repo.save(roomfound)
+        return roomfound
     }
 }

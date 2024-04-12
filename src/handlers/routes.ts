@@ -13,11 +13,17 @@ import { Coordinator } from "../database/entities/coordinator";
 import { listMovieValidation, movieIdValidation, movieValidation, updateMovieValidation } from "./validators/movie-validator";
 import { MovieUsecase } from "../domain/movie-usecase";
 import { coordMiddleware } from "./middleware/coord-middleware";
-import { listRoomValidation, roomIdValidation, roomValidation } from "./validators/room-validator";
+import { listRoomValidation, roomIdValidation, roomValidation, updateRoomValidation } from "./validators/room-validator";
 import { Room } from "../database/entities/room";
 import { RoomUsecase } from "../domain/room-usecase";
+import { Seance } from "../database/entities/seance";
+import { createCoordinatorValidation } from "./validators/coordinator-validator";
+import { Role } from "../database/entities/role";
+import { type } from "os";
 
 export const initRoutes = (app: express.Express) => {
+
+
     app.post('/clients/signup', async (req: Request, res: Response) => {
         // res.send({"req":req.body})
         try {
@@ -88,21 +94,27 @@ export const initRoutes = (app: express.Express) => {
         // res.send({"req":req.body})
         try {
 
-            const validationResult = createClientValidation.validate(req.body)
+            const validationResult = createCoordinatorValidation.validate(req.body)
             if (validationResult.error) {
                 res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
                 return
             }
-            const createClientRequest = validationResult.value
-            const hashedPassword = await hash(createClientRequest.password, 10);
-
-            const clientRepository = AppDataSource.getRepository(Coordinator)
-            const client = await clientRepository.save({
-                email: createClientRequest.email,
-                password: hashedPassword
-            }); 
-
-            res.status(201).send({ id: client.id, email: client.email, createdAt: client.createdAt })
+            const createCoordinatorRequest = validationResult.value
+            const RoleRepository = AppDataSource.getRepository(Role)
+            const role = await RoleRepository.findOneBy({ id: createCoordinatorRequest.role })
+            if (role === null) {
+                res.status(404).send({ "error": `role ${createCoordinatorRequest.role} not found` })
+                return
+            }
+            const hashedPassword = await hash(createCoordinatorRequest.password, 10);
+            const coordinatorRepository = AppDataSource.getRepository(Coordinator)
+            const coordinator = await coordinatorRepository.save({
+                email: createCoordinatorRequest.email,
+                password: hashedPassword,
+                role:role,
+            });  
+            // res.send(typeof createCoordinatorRequest.role)
+            res.status(201).send({ id: coordinator.id, email: coordinator.email, roleId:coordinator.role, createdAt: coordinator.createdAt })
             return
         } catch (error) { 
             console.log(error)
@@ -149,6 +161,9 @@ export const initRoutes = (app: express.Express) => {
             return 
         }
     })
+
+
+
 
     app.post("/movies", async (req: Request, res: Response) => {
         const validation = movieValidation.validate(req.body)
@@ -244,6 +259,9 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+
+
+
     app.post("/rooms", coordMiddleware, async (req: Request, res: Response) => {
         const validation = roomValidation.validate(req.body)
 
@@ -261,6 +279,31 @@ export const initRoutes = (app: express.Express) => {
             )
             res.status(201).send(RoomCreated)
         } catch (error) {
+            res.status(500).send({ error: "Internal error" })
+        }
+    })
+
+    app.get("/rooms", async (req: Request, res: Response) => {
+        const validation = listRoomValidation.validate(req.query)
+
+        if (validation.error) {
+            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            return
+        }
+
+        const listRoomRequest = validation.value
+        let limit = 20
+        if (listRoomRequest.limit) {
+            limit = listRoomRequest.limit
+        }
+        const page = listRoomRequest.page ?? 1
+
+        try {
+            const roomUsecase = new RoomUsecase(AppDataSource);
+            const listrooms = await roomUsecase.listRoom({ ...listRoomRequest, page, limit })
+            res.status(200).send(listrooms)
+        } catch (error) {
+            console.log(error)
             res.status(500).send({ error: "Internal error" })
         }
     })
@@ -287,4 +330,77 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).send({ error: "Internal error" })
         }
     })
-}
+
+    app.patch("/rooms/:id",  coordMiddleware, async (req: Request, res: Response) => {
+
+        const validation = updateRoomValidation.validate({ ...req.params, ...req.body,authorization: req.headers.authorization?.split(" ")[1]})
+
+        if (validation.error) {
+            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            return
+        }
+        const updateRoomRequest = validation.value
+
+        try {
+            const roomUsecase = new RoomUsecase(AppDataSource);
+            const updatedRoom = await roomUsecase.updateRoom(updateRoomRequest.id, updateRoomRequest.authorization,{ ...updateRoomRequest })
+            if (updatedRoom === null) {
+                res.status(404).send({ "error": `room ${updateRoomRequest.id} not found` })
+                return
+            }
+            res.status(200).send(updatedRoom)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send({ error: "Internal error" })
+        }
+    })
+
+    app.delete("/rooms/:id",  coordMiddleware, async (req: Request, res: Response) => {
+        try {
+            const validationResult = roomIdValidation.validate(req.params)
+
+            if (validationResult.error) {
+                res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
+                return
+            }
+            const roomId = validationResult.value
+
+            const roomRepository = AppDataSource.getRepository(Room)
+            const room = await roomRepository.findOneBy({ id: roomId.id })
+            if (room === null) {
+                res.status(404).send({ "error": `room ${roomId.id} not found` })
+                return
+            }
+
+            const roomDeleted = await roomRepository.remove(room)
+            res.status(200).send(roomDeleted)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send({ error: "Internal error" })
+        }
+    })
+
+
+
+    // app.post("/seance",  coordMiddleware, async (req: Request, res: Response) => {
+    //     const validation = seanceValidation.validate(req.body)
+
+    //     if (validation.error) {
+    //         res.status(400).send(generateValidationErrorMessage(validation.error.details))
+    //         return
+    //     }
+
+    //     const SeanceRequest = validation.value
+    //     const SeanceRepo = AppDataSource.getRepository(Seance)
+    //     try {
+
+    //         const SeanceCreated = await SeanceRepo.save(
+    //             SeanceRequest
+    //         )
+    //         res.status(201).send(SeanceCreated)
+    //     } catch (error) {
+    //         res.status(500).send({ error: "Internal error" })
+    //     }
+
+    // })
+} 
