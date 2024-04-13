@@ -28,7 +28,7 @@ export class RoomUsecase {
         }
     }
 
-    async updateRoom(id: number,authorization:string ,{ state }: UpdateRoomParams): Promise<Room | Coordinator |number| Token|null> {
+    async updateRoom(id: number,authorization:string ,{ state }: UpdateRoomParams): Promise<Room |null> {
         const repo = this.db.getRepository(Room)
         const roomfound = await repo.findOneBy({ id })
         if (roomfound === null) return null   

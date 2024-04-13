@@ -11,17 +11,21 @@ export class Movie {
     @Column()
     name: string
 
+    @Column()
+    duration: number
+
     @CreateDateColumn({type: "datetime"}) 
     createdAt: Date
 
     @ManyToOne(() => Coordinator, (coordinator) => coordinator.movie)
     coordinator: Coordinator
 
-    @OneToMany(() => Seance, (seance) => seance.movie)
+    @OneToMany(() => Seance, (seance) => seance.movie)  
     seance: Seance[]
 
-    constructor(id: number, name: string, createdAt: Date, coordinator: Coordinator,seance:Seance[]) {
+    constructor(id: number, name: string, createdAt: Date, coordinator: Coordinator,seance:Seance[],duration:number) {
         this.id = id
+        this.duration=duration
         this.name = name
         this.createdAt = createdAt
         this.coordinator = coordinator

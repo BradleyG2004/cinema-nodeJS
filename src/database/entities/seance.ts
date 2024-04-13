@@ -8,37 +8,27 @@ import { Room } from "./room";
 @Entity()
 export class Seance {
     @PrimaryGeneratedColumn()
-    id: number
+    id!: number;
+
+    @Column({ type: "datetime" })
+    starting!: Date;
 
     @Column({type: "datetime"})
-    starting: Date
-
-    @Column({type: "datetime"})
-    ending: Date
+    ending!: Date
 
     @CreateDateColumn({type: "datetime"}) 
-    createdAt: Date
+    createdAt!: Date
 
     @ManyToMany(() => Ticket, (ticket) => ticket.seance)
-    ticket: Ticket[]
+    ticket!: Ticket[]
 
     @ManyToOne(() => Coordinator, (coordinator) => coordinator.seance)
-    coordinator: Coordinator
+    coordinator!: Coordinator
 
     @ManyToOne(() => Room, (room) => room.seance)
-    room: Room
+    room!: Room
 
     @ManyToOne(() => Movie, (movie) => movie.seance)
-    movie: Movie
+    movie!: Movie
 
-    constructor(id: number, room:Room, ticket:Ticket[],starting: Date,ending: Date, createdAt: Date, coordinator: Coordinator,movie:Movie) {
-        this.id = id
-        this.room=room
-        this.createdAt = createdAt
-        this.starting = starting
-        this.ending = ending
-        this.movie=movie
-        this.ticket=ticket
-        this.coordinator = coordinator
-    }
 }

@@ -3,10 +3,12 @@ export const movieValidation = Joi.object<MovieRequest>({
     name: Joi.string()
         .min(3)
         .required(),
+    duration: Joi.number().required()
 }).options({ abortEarly: false })
 
 export interface MovieRequest {
     name: string
+    duration:number
 }
 
 

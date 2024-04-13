@@ -20,6 +20,8 @@ import { Seance } from "../database/entities/seance";
 import { createCoordinatorValidation } from "./validators/coordinator-validator";
 import { Role } from "../database/entities/role";
 import { type } from "os";
+import { seanceValidation } from "./validators/sceance-validator";
+import { SeanceUsecase } from "../domain/seance-usecase";
 
 export const initRoutes = (app: express.Express) => {
 
@@ -382,25 +384,22 @@ export const initRoutes = (app: express.Express) => {
 
 
 
-    // app.post("/seance",  coordMiddleware, async (req: Request, res: Response) => {
-    //     const validation = seanceValidation.validate(req.body)
+    app.post("/seance",  coordMiddleware, async (req: Request, res: Response) => {
+        const validation = seanceValidation.validate({ ...req.params, ...req.body,autorization: req.headers.authorization?.split(" ")[1]})
 
-    //     if (validation.error) {
-    //         res.status(400).send(generateValidationErrorMessage(validation.error.details))
-    //         return
-    //     }
+        if (validation.error) {
+            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            return
+        }
 
-    //     const SeanceRequest = validation.value
-    //     const SeanceRepo = AppDataSource.getRepository(Seance)
-    //     try {
+        const seanceRequest = validation.value
+        try {
+            const seanceUsecase = new SeanceUsecase(AppDataSource);
+            const seanceCreated = await seanceUsecase.createSeance(seanceRequest.starting, seanceRequest.room,seanceRequest.movie,seanceRequest.autorization)
+            res.status(201).send(seanceCreated)
+        } catch (error) {
+            res.status(500).send({ error: "Internal error" })
+        }
 
-    //         const SeanceCreated = await SeanceRepo.save(
-    //             SeanceRequest
-    //         )
-    //         res.status(201).send(SeanceCreated)
-    //     } catch (error) {
-    //         res.status(500).send({ error: "Internal error" })
-    //     }
-
-    // })
+    })
 } 
