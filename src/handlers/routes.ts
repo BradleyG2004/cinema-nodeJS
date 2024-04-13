@@ -20,7 +20,7 @@ import { Seance } from "../database/entities/seance";
 import { createCoordinatorValidation } from "./validators/coordinator-validator";
 import { Role } from "../database/entities/role";
 import { type } from "os";
-import { seanceValidation } from "./validators/sceance-validator";
+import { seanceRoomValidation, seanceValidation } from "./validators/sceance-validator";
 import { SeanceUsecase } from "../domain/seance-usecase";
 
 export const initRoutes = (app: express.Express) => {
@@ -401,5 +401,29 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).send({ error: "Internal error" })
         }
 
+    })
+    
+    app.get("/seance/:roomid", async (req: Request, res: Response) => {
+        
+            const validationResult = seanceRoomValidation.validate({...req.params,...req.body})
+
+            if (validationResult.error) {
+                res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
+                return
+            }
+            const rech = validationResult.value
+            let limit = 20
+            if (rech.limit) {
+                limit = rech.limit
+            }
+            const page = rech.page ?? 1
+            try {
+                const seanceUsecase = new SeanceUsecase(AppDataSource);
+                const listseances = await seanceUsecase.listseance({ ...rech, page, limit })
+                res.status(200).send(listseances)
+            } catch (error) {
+                console.log(error)
+                res.status(500).send({ error: "Internal error" })
+            }
     })
 } 

@@ -4,11 +4,36 @@ import { Movie } from "../database/entities/movie"
 import { Room } from "../database/entities/room"
 import { Token } from "../database/entities/token"
 import { Seance } from "../database/entities/seance"
-import { seanceValidation } from "../handlers/validators/sceance-validator"
+
+export interface ListseanceFilter {
+    limit: number
+    page: number
+    from:Date
+    to:Date
+}
 
 export class SeanceUsecase {
     constructor(private readonly db: DataSource) { }
-    async createSeance(start: Date, roomId: number, movieId: number, authorization: string): Promise<Seance |Seance[] | string| number|Date | null> {
+
+    async listseance(criterias: ListseanceFilter): Promise<{ seances: Seance[]; totalCount: number; } | string> {
+        const dateDebut = criterias.from;
+        const dateFin = criterias.to
+        const query = this.db.createQueryBuilder(Seance, 'seance')
+            .where("seance.starting BETWEEN :dateDebut AND :dateFin", { dateDebut, dateFin });
+            criterias.limit=10
+            query.skip((criterias.page - 1) * criterias.limit);
+            query.take(criterias.limit);            
+        
+        const [seances, totalCount] = await query.getManyAndCount();
+    
+        return {
+            seances,
+            totalCount
+        };
+    }
+    
+
+    async createSeance(start: Date, roomId: number, movieId: number, authorization: string): Promise<Seance | string | null> {
         // Récupération du token et de l'utilisateur associé
         const tokenRepo = this.db.getRepository(Token);
         const token = await tokenRepo.findOne({
@@ -54,7 +79,7 @@ export class SeanceUsecase {
             .getMany();
             let i=0;
             while(i<rows.length){
-                if((start.getTime()+(movie.duration+30)*(60000)>rows[i].starting.getTime())&&(start.getTime()+(60000)<rows[i].ending.getTime())){
+                if(((start.getTime()*(60000)>=rows[i].starting.getTime())&&(start.getTime()+(60000)<=rows[i].ending.getTime()) || (start.getTime()+(movie.duration+30)*(60000)>rows[i].starting.getTime())&&(start.getTime()+(movie.duration+30)*(60000)<rows[i].ending.getTime()))){
                     return "Configurer une autre seance"
                 }
                 i++;

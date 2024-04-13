@@ -20,3 +20,24 @@ export interface SeanceRequest {
     autorization:string
 
 }
+
+export const seanceRoomValidation = Joi.object<SeanceRoomRequest>({
+    page: Joi.number().min(1).optional(),
+    limit: Joi.number().min(1).optional(),
+    from: Joi.date()
+        .iso()
+        .required(),
+    to:Joi.date()
+        .iso()
+        .required(),
+    roomid:Joi.number().required()
+
+}).options({ abortEarly: false })
+
+export interface SeanceRoomRequest {
+    from:Date,
+    to:Date,
+    roomid:number,
+    page?:number,
+    limit?:number
+}
