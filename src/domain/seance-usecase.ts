@@ -10,26 +10,54 @@ export interface ListseanceFilter {
     page: number
     from:Date
     to:Date
+    roomid:number
+}
+
+
+export interface ListSeanceFilter {
+    limit: number
+    page: number
 }
 
 export class SeanceUsecase {
     constructor(private readonly db: DataSource) { }
 
     async listseance(criterias: ListseanceFilter): Promise<{ seances: Seance[]; totalCount: number; } | string> {
-        const dateDebut = criterias.from;
-        const dateFin = criterias.to
-        const query = this.db.createQueryBuilder(Seance, 'seance')
-            .where("seance.starting BETWEEN :dateDebut AND :dateFin", { dateDebut, dateFin });
+        const roomRepo = this.db.getRepository(Room);
+        const room = await roomRepo.findOne({where:{id:criterias.roomid},relations: ['seance'] });
+        if (!room || room.state==false){
+            const dateDebut = criterias.from;
+            const dateFin = criterias.to
+            const query = this.db.createQueryBuilder(Seance, 'seance')
+            .where("seance.starting BETWEEN :dateDebut AND :dateFin", { dateDebut, dateFin })
+
             criterias.limit=10
-            query.skip((criterias.page - 1) * criterias.limit);
-            query.take(criterias.limit);            
+                query.skip((criterias.page - 1) * criterias.limit);
+                query.take(criterias.limit);            
+            
+            const [seances, totalCount] = await query.getManyAndCount();
         
-        const [seances, totalCount] = await query.getManyAndCount();
-    
-        return {
-            seances,
-            totalCount
-        };
+            return {
+                seances,
+                totalCount
+            };
+        }else{
+            const dateDebut = criterias.from;
+            const dateFin = criterias.to
+            const query = this.db.createQueryBuilder(Seance, 'seance')
+            .where("seance.starting BETWEEN :dateDebut AND :dateFin", { dateDebut, dateFin })
+            .andWhere("seance.roomId = :roomId", { roomId: room.id });    
+                criterias.limit=10
+                query.skip((criterias.page - 1) * criterias.limit);
+                query.take(criterias.limit);            
+            
+            const [seances, totalCount] = await query.getManyAndCount();
+        
+            return {
+                seances,
+                totalCount
+            };
+        }
     }
     
 
@@ -99,5 +127,18 @@ export class SeanceUsecase {
 
         }
         
+    }
+
+    async listSeance(listSeanceFilter: ListSeanceFilter): Promise<{ seances: Seance[]; totalCount: number; }> {
+        console.log(listSeanceFilter)
+        const query = this.db.createQueryBuilder(Seance, 'seance')
+        query.skip((listSeanceFilter.page - 1) * listSeanceFilter.limit)
+        query.take(listSeanceFilter.limit)
+
+        const [seances, totalCount] = await query.getManyAndCount()
+        return {
+            seances,
+            totalCount
+        }
     }
 }

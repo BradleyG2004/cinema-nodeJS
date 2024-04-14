@@ -15,7 +15,7 @@ export const coordMiddleware = async (req: Request, res: Response, next: NextFun
     if (!tokenFound) {
         return res.status(403).json({"error": "Access Forbidden"})
     }
-    const secret = process.env.JWT_SECRET ?? "NoNotThis"
+    const secret = process.env.JWT_SECRET ?? "NoNotThiss"
     verify(token, secret, (err, coordinator) => {
         if (err) return res.status(403).json({"error": "Access Forbidden"});
         (req as any).user = coordinator;

@@ -41,3 +41,14 @@ export interface SeanceRoomRequest {
     page?:number,
     limit?:number
 }
+
+export const listSeanceValidation = Joi.object<ListSeanceRequest>({
+    page: Joi.number().min(1).optional(),
+    limit: Joi.number().min(1).optional()
+})
+
+
+export interface ListSeanceRequest {
+    page?: number
+    limit?: number
+}

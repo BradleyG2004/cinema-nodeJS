@@ -20,8 +20,9 @@ import { Seance } from "../database/entities/seance";
 import { createCoordinatorValidation } from "./validators/coordinator-validator";
 import { Role } from "../database/entities/role";
 import { type } from "os";
-import { seanceRoomValidation, seanceValidation } from "./validators/sceance-validator";
+import { listSeanceValidation, seanceRoomValidation, seanceValidation } from "./validators/sceance-validator";
 import { SeanceUsecase } from "../domain/seance-usecase";
+import { combMiddleware } from "./middleware/comb-middleware";
 
 export const initRoutes = (app: express.Express) => {
 
@@ -92,6 +93,9 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+ 
+
+
     app.post('/coordinators/signup', async (req: Request, res: Response) => {
         // res.send({"req":req.body})
         try {
@@ -150,7 +154,7 @@ export const initRoutes = (app: express.Express) => {
                 return
             }
             
-            const secret = process.env.JWT_SECRET ?? "NoNotThis"
+            const secret = process.env.JWT_SECRET ?? "NoNotThiss"
             console.log(secret)
             // generate jwt
             const token = sign({ clientId: coordinator.id, email: coordinator.email }, secret, { expiresIn: '1d' });
@@ -384,6 +388,7 @@ export const initRoutes = (app: express.Express) => {
 
 
 
+
     app.post("/seance",  coordMiddleware, async (req: Request, res: Response) => {
         const validation = seanceValidation.validate({ ...req.params, ...req.body,autorization: req.headers.authorization?.split(" ")[1]})
 
@@ -402,8 +407,8 @@ export const initRoutes = (app: express.Express) => {
         }
 
     })
-    
-    app.get("/seance/:roomid", async (req: Request, res: Response) => {
+
+    app.get("/seance/:roomid",  combMiddleware,async (req: Request, res: Response) => {
         
             const validationResult = seanceRoomValidation.validate({...req.params,...req.body})
 
@@ -425,5 +430,31 @@ export const initRoutes = (app: express.Express) => {
                 console.log(error)
                 res.status(500).send({ error: "Internal error" })
             }
+    })  
+
+    app.get("/seance",combMiddleware,async (req: Request, res: Response) => {
+        const validation = listSeanceValidation.validate(req.query)
+
+        if (validation.error) {
+            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            return
+        }
+
+        const listSeanceRequest = validation.value
+        let limit = 20
+        if (listSeanceRequest.limit) {
+            limit = listSeanceRequest.limit
+        }
+        const page = listSeanceRequest.page ?? 1
+
+        try {
+            const seanceUsecase = new SeanceUsecase(AppDataSource);
+            const listrooms = await seanceUsecase.listSeance({ ...listSeanceRequest, page, limit })
+            res.status(200).send(listrooms)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send({ error: "Internal error" })
+        }
+
     })
 } 
