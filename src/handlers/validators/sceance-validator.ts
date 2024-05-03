@@ -21,6 +21,9 @@ export interface SeanceRequest {
 
 }
 
+
+
+
 export const seanceRoomValidation = Joi.object<SeanceRoomRequest>({
     page: Joi.number().min(1).optional(),
     limit: Joi.number().min(1).optional(),
@@ -42,6 +45,10 @@ export interface SeanceRoomRequest {
     limit?:number
 }
 
+
+
+
+
 export const listSeanceValidation = Joi.object<ListSeanceRequest>({
     page: Joi.number().min(1).optional(),
     limit: Joi.number().min(1).optional()
@@ -51,4 +58,34 @@ export const listSeanceValidation = Joi.object<ListSeanceRequest>({
 export interface ListSeanceRequest {
     page?: number
     limit?: number
+}
+
+
+
+
+export const seanceIdValidation = Joi.object<SeanceIdRequest>({
+    id: Joi.number().required(),
+})
+
+export interface SeanceIdRequest {
+    id: number
+}
+
+
+export const updateSeanceValidation= Joi.object<UpdateSeanceRequest>({
+    id: Joi.number().required(),
+    starting:Joi.date()
+    .iso(),
+    room:Joi.number(),
+    movie:Joi.number(),
+    authorization: Joi.string().required()
+
+})
+
+export interface UpdateSeanceRequest {
+    id: number
+    starting?:Date
+    room?:number
+    movie?:number
+    authorization: string
 }

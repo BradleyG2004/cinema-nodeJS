@@ -19,6 +19,12 @@ export interface ListSeanceFilter {
     page: number
 }
 
+export interface UpdateSeanceParams {
+    starting?:Date
+    room?:number
+    movie?:number
+}
+
 export class SeanceUsecase {
     constructor(private readonly db: DataSource) { }
 
@@ -107,7 +113,7 @@ export class SeanceUsecase {
             .getMany();
             let i=0;
             while(i<rows.length){
-                if(((start.getTime()*(60000)>=rows[i].starting.getTime())&&(start.getTime()+(60000)<=rows[i].ending.getTime()) || (start.getTime()+(movie.duration+30)*(60000)>rows[i].starting.getTime())&&(start.getTime()+(movie.duration+30)*(60000)<rows[i].ending.getTime()))){
+                if(((start.getTime()>=rows[i].starting.getTime())&&(start.getTime()<=rows[i].ending.getTime()) )||( (start.getTime()+(movie.duration+30)*(60000)>=rows[i].starting.getTime())&&(start.getTime()+(movie.duration+30)*(60000)<=rows[i].ending.getTime()))){
                     return "Configurer une autre seance"
                 }
                 i++;
@@ -140,5 +146,60 @@ export class SeanceUsecase {
             seances,
             totalCount
         }
+    }
+
+    async updateSeance(id: number,authorization:string ,params: UpdateSeanceParams): Promise<Seance |null | string|Coordinator|Room> {
+        const repo = this.db.getRepository(Seance)
+        const seancefound = await repo.findOneBy({ id })
+        if (seancefound === null) return null           
+
+        if(params.starting){
+            const movieRepo = this.db.getRepository(Movie);
+            const movie = await movieRepo.findOne({where:{id:seancefound.movie.id}, relations: ['seance'] });
+            if (!movie) return null;
+
+            const rows = await this.db.getRepository(Seance)
+            .createQueryBuilder("seance")
+            .where("seance.id != :Id", { Id: seancefound.id })
+            .andWhere("seance.movie != :movie", { movie: seancefound.movie })
+            .getMany();
+            let i=0;
+            while(i<rows.length){
+                if(((params.starting.getTime()>=rows[i].starting.getTime())&&(params.starting.getTime()<=rows[i].ending.getTime()) )||( (params.starting.getTime()+(movie.duration+30)*(60000)>=rows[i].starting.getTime())&&(params.starting.getTime()+(movie.duration+30)*(60000)<=rows[i].ending.getTime()))){
+                    return "Configurer une autre seance"
+                }
+                i++;
+            }
+            seancefound.starting=params.starting;
+            seancefound.ending=new Date(seancefound.starting.getTime()+(movie.duration+30)*(60000));
+            await repo.save(seancefound);
+        }
+        if(params.movie){
+            const movieRepo = this.db.getRepository(Movie);
+            const movie = await movieRepo.findOne({where:{id:params.movie}, relations: ['seance'] });
+            if (!movie) return null;
+            const rows = await this.db.getRepository(Seance)
+            .createQueryBuilder("seance")
+            .where("seance.movie != :movie", { movie: params.movie })
+            .getMany();
+            let i=0;
+            while(i<rows.length){
+                if(((seancefound.starting.getTime()>=rows[i].starting.getTime())&&(seancefound.starting.getTime()<=rows[i].ending.getTime())) || ((seancefound.starting.getTime()+(movie.duration+30)*(60000)>=rows[i].starting.getTime())&&(seancefound.starting.getTime()+(movie.duration+30)*(60000)<=rows[i].ending.getTime()))){
+                    return "Configurer une autre seance"
+                }
+                i++;
+            }
+            seancefound.movie=movie;
+            seancefound.ending=new Date(seancefound.starting.getTime()+(movie.duration+30)*(60000));
+            await repo.save(seancefound);
+        }
+        if(params.room){
+            const roomRepo = this.db.getRepository(Room);
+            const room = await roomRepo.findOne({where:{id:params.room}, relations: ['seance'] });
+            if (!room) return null;
+            seancefound.room=room;
+            await repo.save(seancefound);
+        }
+        return seancefound ;
     }
 }

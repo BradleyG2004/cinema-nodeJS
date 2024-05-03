@@ -20,7 +20,7 @@ import { Seance } from "../database/entities/seance";
 import { createCoordinatorValidation } from "./validators/coordinator-validator";
 import { Role } from "../database/entities/role";
 import { type } from "os";
-import { listSeanceValidation, seanceRoomValidation, seanceValidation } from "./validators/sceance-validator";
+import { listSeanceValidation, seanceIdValidation, seanceRoomValidation, seanceValidation, updateSeanceValidation } from "./validators/sceance-validator";
 import { SeanceUsecase } from "../domain/seance-usecase";
 import { combMiddleware } from "./middleware/comb-middleware";
 
@@ -28,12 +28,12 @@ export const initRoutes = (app: express.Express) => {
 
 
     app.post('/clients/signup', async (req: Request, res: Response) => {
-        // res.send({"req":req.body})
+        // res.json({"req":req.body})
         try {
 
             const validationResult = createClientValidation.validate(req.body)
             if (validationResult.error) {
-                res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
+                res.status(400).json(generateValidationErrorMessage(validationResult.error.details))
                 return
             }
             const createClientRequest = validationResult.value
@@ -45,11 +45,11 @@ export const initRoutes = (app: express.Express) => {
                 password: hashedPassword
             }); 
 
-            res.status(201).send({ id: client.id, email: client.email, createdAt: client.createdAt })
+            res.status(201).json({ id: client.id, email: client.email, createdAt: client.createdAt })
             return
         } catch (error) { 
             console.log(error)
-            res.status(500).send({ "error": "internal error retry later" })
+            res.status(500).json({ "error": "internal error retry later" })
             return
         }
     })
@@ -59,7 +59,7 @@ export const initRoutes = (app: express.Express) => {
 
             const validationResult = LoginClientValidation.validate(req.body)
             if (validationResult.error) {
-                res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
+                res.status(400).json(generateValidationErrorMessage(validationResult.error.details))
                 return
             }
             const loginClientRequest = validationResult.value
@@ -68,27 +68,27 @@ export const initRoutes = (app: express.Express) => {
             const client = await AppDataSource.getRepository(Client).findOneBy({ email: loginClientRequest.email });
 
             if (!client) {
-                res.status(400).send({ error: "email or password not valid" })
+                res.status(400).json({ error: "email or password not valid" })
                 return
             }
 
             // valid password for this client
             const isValid = await compare(loginClientRequest.password, client.password);
             if (!isValid) {
-                res.status(400).send({ error: "email or password not valid" })
+                res.status(400).json({ error: "email or password not valid" })
                 return
             }
             
             const secret = process.env.JWT_SECRET ?? "NoNotThis"
-            console.log(secret)
+            //console.log(secret)
             // generate jwt
             const token = sign({ clientId: client.id, email: client.email }, secret, { expiresIn: '1d' });
             // store un token pour un client
             await AppDataSource.getRepository(Token).save({ token: token, client: client })
-            res.status(200).json({ token }).send({"message":"authenticated ✅"});
+            res.status(200).json({ token, message: "authenticated ✅" });
         } catch (error) {
             console.log(error)
-            res.status(500).send({ "error": "internal error retry later" })
+            res.status(500).json({ "error": "internal error retry later" })
             return
         }
     })
@@ -97,19 +97,19 @@ export const initRoutes = (app: express.Express) => {
 
 
     app.post('/coordinators/signup', async (req: Request, res: Response) => {
-        // res.send({"req":req.body})
+        // res.json({"req":req.body})
         try {
 
             const validationResult = createCoordinatorValidation.validate(req.body)
             if (validationResult.error) {
-                res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
+                res.status(400).json(generateValidationErrorMessage(validationResult.error.details))
                 return
             }
             const createCoordinatorRequest = validationResult.value
             const RoleRepository = AppDataSource.getRepository(Role)
             const role = await RoleRepository.findOneBy({ id: createCoordinatorRequest.role })
             if (role === null) {
-                res.status(404).send({ "error": `role ${createCoordinatorRequest.role} not found` })
+                res.status(404).json({ "error": `role ${createCoordinatorRequest.role} not found` })
                 return
             }
             const hashedPassword = await hash(createCoordinatorRequest.password, 10);
@@ -119,12 +119,12 @@ export const initRoutes = (app: express.Express) => {
                 password: hashedPassword,
                 role:role,
             });  
-            // res.send(typeof createCoordinatorRequest.role)
-            res.status(201).send({ id: coordinator.id, email: coordinator.email, roleId:coordinator.role, createdAt: coordinator.createdAt })
+            // res.json(typeof createCoordinatorRequest.role)
+            res.status(201).json({ id: coordinator.id, email: coordinator.email, roleId:coordinator.role, createdAt: coordinator.createdAt })
             return
         } catch (error) { 
             console.log(error)
-            res.status(500).send({ "error": "internal error retry later" })
+            res.status(500).json({ "error": "internal error retry later" })
             return
         }
     })
@@ -134,7 +134,7 @@ export const initRoutes = (app: express.Express) => {
 
             const validationResult = LoginClientValidation.validate(req.body)
             if (validationResult.error) {
-                res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
+                res.status(400).json(generateValidationErrorMessage(validationResult.error.details))
                 return
             }
             const loginCoordinatorRequest = validationResult.value
@@ -143,27 +143,27 @@ export const initRoutes = (app: express.Express) => {
             const coordinator = await AppDataSource.getRepository(Coordinator).findOneBy({ email: loginCoordinatorRequest.email });
 
             if (!coordinator) {
-                res.status(400).send({ error: "email or password not valid" })
+                res.status(400).json({ error: "email or password not valid" })
                 return
             }
 
             // valid password for this client
             const isValid = await compare(loginCoordinatorRequest.password, coordinator.password);
             if (!isValid) {
-                res.status(400).send({ error: "email or password not valid" })
+                res.status(400).json({ error: "email or password not valid" })
                 return
             }
             
             const secret = process.env.JWT_SECRET ?? "NoNotThiss"
-            console.log(secret)
+            //console.log(secret)
             // generate jwt
             const token = sign({ clientId: coordinator.id, email: coordinator.email }, secret, { expiresIn: '1d' });
             // store un token pour un client
             await AppDataSource.getRepository(Token).save({ token: token, coordinator: coordinator })
-            res.status(200).json({ token }).send({"message":"authenticated ✅"});
+            res.status(200).json({ token, message: "authenticated ✅" });
         } catch (error) {
             console.log(error)
-            res.status(500).send({ "error": "internal error retry later" })
+            res.status(500).json({ "error": "internal error retry later" })
             return 
         }
     })
@@ -175,7 +175,7 @@ export const initRoutes = (app: express.Express) => {
         const validation = movieValidation.validate(req.body)
 
         if (validation.error) {
-            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
             return
         }
  
@@ -186,9 +186,9 @@ export const initRoutes = (app: express.Express) => {
             const MovieCreated = await MovieRepo.save(
                 MovieRequest
             )
-            res.status(201).send(MovieCreated)
+            res.status(201).json(MovieCreated)
         } catch (error) {
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
     })
 
@@ -196,7 +196,7 @@ export const initRoutes = (app: express.Express) => {
         const validation = listMovieValidation.validate(req.query)
 
         if (validation.error) {
-            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
             return
         }
 
@@ -210,10 +210,10 @@ export const initRoutes = (app: express.Express) => {
         try {
             const movieUsecase = new MovieUsecase(AppDataSource);
             const listmovies = await movieUsecase.listMovie({ ...listMovieRequest, page, limit })
-            res.status(200).send(listmovies)
+            res.status(200).json(listmovies)
         } catch (error) {
             console.log(error)
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
     })
 
@@ -222,7 +222,7 @@ export const initRoutes = (app: express.Express) => {
             const validationResult = movieIdValidation.validate(req.params)
 
             if (validationResult.error) {
-                res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
+                res.status(400).json(generateValidationErrorMessage(validationResult.error.details))
                 return
             }
             const movieId = validationResult.value
@@ -230,13 +230,13 @@ export const initRoutes = (app: express.Express) => {
             const movieRepository = AppDataSource.getRepository(Movie)
             const movie = await movieRepository.findOneBy({ id: movieId.id })
             if (movie === null) {
-                res.status(404).send({ "error": `movie ${movieId.id} not found` })
+                res.status(404).json({ "error": `movie ${movieId.id} not found` })
                 return
             }
-            res.status(200).send(movie)
+            res.status(200).json(movie)
         } catch (error) {
             console.log(error)
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
     })
 
@@ -245,7 +245,7 @@ export const initRoutes = (app: express.Express) => {
         const validation = updateMovieValidation.validate({ ...req.params, ...req.body })
 
         if (validation.error) {
-            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
             return
         } 
 
@@ -255,13 +255,13 @@ export const initRoutes = (app: express.Express) => {
             const movieUsecase = new MovieUsecase(AppDataSource);
             const updatedMovie = await movieUsecase.updateMovie(updateMovieRequest.id, { ...updateMovieRequest })
             if (updatedMovie === null) {
-                res.status(404).send({ "error": `movie ${updateMovieRequest.id} not found` })
+                res.status(404).json({ "error": `movie ${updateMovieRequest.id} not found` })
                 return
             }
-            res.status(200).send(updatedMovie)
+            res.status(200).json(updatedMovie)
         } catch (error) {
             console.log(error)
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
     })
 
@@ -272,7 +272,7 @@ export const initRoutes = (app: express.Express) => {
         const validation = roomValidation.validate(req.body)
 
         if (validation.error) {
-            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
             return
         }
  
@@ -283,17 +283,17 @@ export const initRoutes = (app: express.Express) => {
             const RoomCreated = await RoomRepo.save(
                 RoomRequest
             )
-            res.status(201).send(RoomCreated)
+            res.status(201).json(RoomCreated)
         } catch (error) {
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
     })
 
-    app.get("/rooms", async (req: Request, res: Response) => {
+    app.get("/rooms",combMiddleware,async (req: Request, res: Response) => {
         const validation = listRoomValidation.validate(req.query)
 
         if (validation.error) {
-            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
             return
         }
 
@@ -307,19 +307,19 @@ export const initRoutes = (app: express.Express) => {
         try {
             const roomUsecase = new RoomUsecase(AppDataSource);
             const listrooms = await roomUsecase.listRoom({ ...listRoomRequest, page, limit })
-            res.status(200).send(listrooms)
+            res.status(200).json(listrooms)
         } catch (error) {
             console.log(error)
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
     })
 
-    app.get("/rooms/:id", async (req: Request, res: Response) => {
+    app.get("/rooms/:id",combMiddleware,async (req: Request, res: Response) => {
         try {
             const validationResult = roomIdValidation.validate(req.params)
 
             if (validationResult.error) {
-                res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
+                res.status(400).json(generateValidationErrorMessage(validationResult.error.details))
                 return
             }
             const roomId = validationResult.value
@@ -327,13 +327,13 @@ export const initRoutes = (app: express.Express) => {
             const roomRepository = AppDataSource.getRepository(Room)
             const room = await roomRepository.findOneBy({ id: roomId.id })
             if (room === null) {
-                res.status(404).send({ "error": `room ${roomId.id} not found` })
+                res.status(404).json({ "error": `room ${roomId.id} not found` })
                 return
             }
-            res.status(200).send(room) 
+            res.status(200).json(room) 
         } catch (error) {
             console.log(error)
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
     })
 
@@ -342,7 +342,7 @@ export const initRoutes = (app: express.Express) => {
         const validation = updateRoomValidation.validate({ ...req.params, ...req.body,authorization: req.headers.authorization?.split(" ")[1]})
 
         if (validation.error) {
-            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
             return
         }
         const updateRoomRequest = validation.value
@@ -351,13 +351,13 @@ export const initRoutes = (app: express.Express) => {
             const roomUsecase = new RoomUsecase(AppDataSource);
             const updatedRoom = await roomUsecase.updateRoom(updateRoomRequest.id, updateRoomRequest.authorization,{ ...updateRoomRequest })
             if (updatedRoom === null) {
-                res.status(404).send({ "error": `room ${updateRoomRequest.id} not found` })
+                res.status(404).json({ "error": `room ${updateRoomRequest.id} not found` })
                 return
             }
-            res.status(200).send(updatedRoom)
+            res.status(200).json(updatedRoom)
         } catch (error) {
             console.log(error)
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
     })
 
@@ -366,7 +366,7 @@ export const initRoutes = (app: express.Express) => {
             const validationResult = roomIdValidation.validate(req.params)
 
             if (validationResult.error) {
-                res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
+                res.status(400).json(generateValidationErrorMessage(validationResult.error.details))
                 return
             }
             const roomId = validationResult.value
@@ -374,26 +374,50 @@ export const initRoutes = (app: express.Express) => {
             const roomRepository = AppDataSource.getRepository(Room)
             const room = await roomRepository.findOneBy({ id: roomId.id })
             if (room === null) {
-                res.status(404).send({ "error": `room ${roomId.id} not found` })
+                res.status(404).json({ "error": `room ${roomId.id} not found` })
                 return
             }
 
             const roomDeleted = await roomRepository.remove(room)
-            res.status(200).send(roomDeleted)
+            res.status(200).json(roomDeleted)
         } catch (error) {
             console.log(error)
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
     })
 
+    app.get("/rooms/:roomid/planning",  combMiddleware,async (req: Request, res: Response) => {
+        
+        const validationResult = seanceRoomValidation.validate({...req.params,...req.body})
+
+        if (validationResult.error) {
+            res.status(400).json(generateValidationErrorMessage(validationResult.error.details))
+            return
+        }
+        const rech = validationResult.value
+        let limit = 20
+        if (rech.limit) {
+            limit = rech.limit
+        }
+        const page = rech.page ?? 1
+        try {
+            const seanceUsecase = new SeanceUsecase(AppDataSource);
+            const listseances = await seanceUsecase.listseance({ ...rech, page, limit })
+            res.status(200).json(listseances)
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: "Internal error" })
+        }
+}) 
 
 
 
-    app.post("/seance",  coordMiddleware, async (req: Request, res: Response) => {
+
+    app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
         const validation = seanceValidation.validate({ ...req.params, ...req.body,autorization: req.headers.authorization?.split(" ")[1]})
 
         if (validation.error) {
-            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
             return
         }
 
@@ -401,42 +425,18 @@ export const initRoutes = (app: express.Express) => {
         try {
             const seanceUsecase = new SeanceUsecase(AppDataSource);
             const seanceCreated = await seanceUsecase.createSeance(seanceRequest.starting, seanceRequest.room,seanceRequest.movie,seanceRequest.autorization)
-            res.status(201).send(seanceCreated)
+            res.status(201).json(seanceCreated)
         } catch (error) {
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
 
-    })
-
-    app.get("/seance/:roomid",  combMiddleware,async (req: Request, res: Response) => {
-        
-            const validationResult = seanceRoomValidation.validate({...req.params,...req.body})
-
-            if (validationResult.error) {
-                res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
-                return
-            }
-            const rech = validationResult.value
-            let limit = 20
-            if (rech.limit) {
-                limit = rech.limit
-            }
-            const page = rech.page ?? 1
-            try {
-                const seanceUsecase = new SeanceUsecase(AppDataSource);
-                const listseances = await seanceUsecase.listseance({ ...rech, page, limit })
-                res.status(200).send(listseances)
-            } catch (error) {
-                console.log(error)
-                res.status(500).send({ error: "Internal error" })
-            }
     })  
 
-    app.get("/seance",combMiddleware,async (req: Request, res: Response) => {
+    app.get("/seances",combMiddleware,async (req: Request, res: Response) => {
         const validation = listSeanceValidation.validate(req.query)
 
         if (validation.error) {
-            res.status(400).send(generateValidationErrorMessage(validation.error.details))
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
             return
         }
 
@@ -450,11 +450,83 @@ export const initRoutes = (app: express.Express) => {
         try {
             const seanceUsecase = new SeanceUsecase(AppDataSource);
             const listrooms = await seanceUsecase.listSeance({ ...listSeanceRequest, page, limit })
-            res.status(200).send(listrooms)
+            res.status(200).json(listrooms)
         } catch (error) {
             console.log(error)
-            res.status(500).send({ error: "Internal error" })
+            res.status(500).json({ error: "Internal error" })
         }
 
+    })
+
+    app.get("/seances/:id",combMiddleware,async (req: Request, res: Response) => {
+        try {
+            const validationResult = seanceIdValidation.validate(req.params)
+
+            if (validationResult.error) {
+                res.status(400).json(generateValidationErrorMessage(validationResult.error.details))
+                return
+            }
+            const seanceId = validationResult.value
+
+            const seanceRepository = AppDataSource.getRepository(Seance)
+            const seance = await seanceRepository.findOneBy({ id: seanceId.id })
+            if (seance === null) {
+                res.status(404).json({ "error": `seance ${seanceId.id} not found` })
+                return
+            }
+            res.status(200).json(seance) 
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: "Internal error" })
+        }
+    })
+
+    app.patch("/seances/:id",  coordMiddleware, async (req: Request, res: Response) => {
+
+        const validation = updateSeanceValidation.validate({ ...req.params, ...req.body,authorization: req.headers.authorization?.split(" ")[1]})
+
+        if (validation.error) {
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
+            return
+        }
+        const updateSeanceRequest = validation.value
+
+        try {
+            const seanceUsecase = new SeanceUsecase(AppDataSource);
+            const updatedSeance = await seanceUsecase.updateSeance(updateSeanceRequest.id, updateSeanceRequest.authorization,{ ...updateSeanceRequest })
+            if (updatedSeance === null) {
+                res.status(404).json({ "error": `seance ${updateSeanceRequest.id} not found` })
+                return
+            }
+            res.status(200).json(updatedSeance)
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: "Internal error" })
+        }
+    })
+
+    app.delete("/seances/:id",coordMiddleware, async (req: Request, res: Response) => {
+        try {
+            const validationResult = seanceIdValidation.validate(req.params)
+
+            if (validationResult.error) {
+                res.status(400).json(generateValidationErrorMessage(validationResult.error.details))
+                return
+            }
+            const seanceId = validationResult.value
+
+            const seanceRepository = AppDataSource.getRepository(Seance)
+            const seance = await seanceRepository.findOneBy({ id: seanceId.id })
+            if (seance === null) {
+                res.status(404).json({ "error": `seance ${seanceId.id} not found` })
+                return
+            }
+
+            const seanceDeleted = await seanceRepository.remove(seance)
+            res.status(200).json(seanceDeleted)
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: "Internal error" })
+        }
     })
 } 

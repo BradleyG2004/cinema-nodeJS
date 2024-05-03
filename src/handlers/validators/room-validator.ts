@@ -1,4 +1,4 @@
-import Joi from "joi";
+import Joi, { StringRegexOptions } from "joi";
 export const roomValidation = Joi.object<RoomRequest>({
     name: Joi.string()
         .min(3)
@@ -51,15 +51,23 @@ export interface RoomIdRequest {
 
 export const updateRoomValidation = Joi.object<UpdateRoomRequest>({
     id: Joi.number().required(),
-    state:Joi.boolean()
-    .required(),
+    type:Joi.string(),
+    name:Joi.string(),
+    description:Joi.string(),
+    capacity:Joi.number(),
+    state:Joi.boolean(),
+    accessibility: Joi.boolean(),
     authorization: Joi.string().required()
 
 })
 
 export interface UpdateRoomRequest {
     id: number
+    type:string
+    name: string
     state:boolean
+    capacity: number
+    description: string
     authorization:string
-
+    accessibility: boolean
 }
