@@ -23,6 +23,12 @@ import { type } from "os";
 import { listSeanceValidation, seanceIdValidation, seanceRoomValidation, seanceValidation, updateSeanceValidation } from "./validators/sceance-validator";
 import { SeanceUsecase } from "../domain/seance-usecase";
 import { combMiddleware } from "./middleware/comb-middleware";
+import { TicketRequest, listTicketValidation, ticketIdValidation, ticketValidation, updateTicketValidation } from "./validators/ticket-validator";
+import { Ticket } from "../database/entities/ticket";
+import { TicketUsecase } from "../domain/ticket-usecase";
+import { SeatIdRequest, SeatRequest, listSeatValidation, seatIdValidation, seatValidation, updateSeatValidation } from "./validators/seat-validator";
+import { SeatUsecase } from "../domain/seat-usecase";
+import { Seat } from "../database/entities/seat";
 
 export const initRoutes = (app: express.Express) => {
     /**
@@ -137,6 +143,7 @@ export const initRoutes = (app: express.Express) => {
     })
 
  
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
     app.post('/coordinators/signup', async (req: Request, res: Response) => {
@@ -213,7 +220,7 @@ export const initRoutes = (app: express.Express) => {
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.post("/movies", async (req: Request, res: Response) => {
         const validation = movieValidation.validate(req.body)
 
@@ -234,6 +241,7 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).json({ error: "Internal error" })
         }
     })
+ 
 
     app.get("/movies", async (req: Request, res: Response) => {
         const validation = listMovieValidation.validate(req.query)
@@ -307,9 +315,232 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).json({ error: "Internal error" })
         }
     })
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+ 
+app.post("/tickets", async (req: Request, res: Response) => {
+    const validation = ticketValidation.validate(req.body);
+    const ticketUsecase = new TicketUsecase(AppDataSource);
+    if (validation.error) {
+        res.status(400).send(generateValidationErrorMessage(validation.error.details));
+        return;
+    }
+
+    const ticketRequest: TicketRequest = validation.value;
+
+    try {
+        const ticketCreated = await ticketUsecase.createTicket(ticketRequest);
+        if (!ticketCreated) {
+            res.status(404).send("Client or Seance not found");
+            return;
+        } }
+        
+        catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Internal error" });
+        }
+   
+});
 
 
+    
+    app.get("/tickets", async (req: Request, res: Response) => {
+        const validation = listTicketValidation.validate(req.query);
+    
+        if (validation.error) {
+            res.status(400).send(generateValidationErrorMessage(validation.error.details));
+            return;
+        }
+    
+        const listTicketRequest = validation.value;
+        let limit = 20; // Default limit
+        if (listTicketRequest.limit) {
+            limit = listTicketRequest.limit;
+        }
+        const page = listTicketRequest.page ?? 1;
+    
+        try {
+            const ticketUsecase = new TicketUsecase(AppDataSource);
+            const tickets = await ticketUsecase.listTickets({ page, limit });
+            res.status(200).send(tickets);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ error: "Internal error" });
+        }
+    });
+    app.get("/tickets/:id", async (req: Request, res: Response) => {
+        const validationResult = ticketIdValidation.validate(req.params);
+    
+        if (validationResult.error) {
+            res.status(400).send(generateValidationErrorMessage(validationResult.error.details));
+            return;
+        }
+    
+        const ticketId = validationResult.value.id;
+        const ticketRepo = AppDataSource.getRepository(Ticket);
+        try {
+            const ticket = await ticketRepo.findOneBy({ id: ticketId });
+            if (!ticket) {
+                res.status(404).send({ error: `Ticket ${ticketId} not found` });
+                return;
+            }
+            res.status(200).send(ticket);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ error: "Internal error" });
+        }
+    });
+    app.put("/tickets/:id", async (req: Request, res: Response) => {
+        const validation = updateTicketValidation.validate({ ...req.params, ...req.body });
+    
+        if (validation.error) {
+            res.status(400).send(generateValidationErrorMessage(validation.error.details));
+            return;
+        }
+    
+        const updateTicketRequest = validation.value;
+        const ticketRepo = AppDataSource.getRepository(Ticket);
+        try {
+            const ticket = await ticketRepo.findOneBy({ id: updateTicketRequest.id });
+            if (!ticket) {
+                res.status(404).send({ error: `Ticket ${updateTicketRequest.id} not found` });
+                return;
+            }
+    
+            if (updateTicketRequest.seatNumber !== undefined) {
+                ticket.seatNumber = updateTicketRequest.seatNumber;
+            }
+            if (updateTicketRequest.isValid !== undefined) {
+                ticket.isValid = updateTicketRequest.isValid;
+            }
+    
+            const updatedTicket = await ticketRepo.save(ticket);
+            res.status(200).send(updatedTicket);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ error: "Internal error" });
+        }
+    });
+    
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    app.post("/seats", async (req: Request, res: Response) => {
+        const validation = seatValidation.validate(req.body);
+        const seatUsecase = new SeatUsecase(AppDataSource);
 
+        if (validation.error) {
+            res.status(400).send(generateValidationErrorMessage(validation.error.details));
+            return;
+        }
+    
+        const seatRequest: SeatRequest = validation.value;
+    
+        try {
+            const seatCreated = await seatUsecase.createSeat(seatRequest);
+            if (!seatCreated) {
+                res.status(404).send("Room not found");
+                return;
+            }
+            res.status(201).send(seatCreated);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ error: "Internal error" });
+        }
+    });
+    
+    app.get("/seats", async (req: Request, res: Response) => {
+        const validation = listSeatValidation.validate(req.query);
+        const seatUsecase = new SeatUsecase(AppDataSource);
+
+        if (validation.error) {
+            res.status(400).send(generateValidationErrorMessage(validation.error.details));
+            return;
+        }
+    
+        const listSeatRequest = validation.value;
+        let limit = 20; // Default limit
+        if (listSeatRequest.limit) {
+            limit = listSeatRequest.limit;
+        }
+        const page = listSeatRequest.page ?? 1;
+    
+        try {
+            const seats = await seatUsecase.listSeats({ page, limit });
+            res.status(200).send(seats);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ error: "Internal error" });
+        }
+    });
+    
+    app.get("/seats/:id", async (req: Request, res: Response) => {
+        const validationResult = seatIdValidation.validate(req.params);
+    
+        if (validationResult.error) {
+            res.status(400).send(generateValidationErrorMessage(validationResult.error.details));
+            return;
+        }
+    
+        const seatId: SeatIdRequest = validationResult.value;
+        const seatRepo = AppDataSource.getRepository(Seat);
+    
+        try {
+            const seat = await seatRepo.findOneBy({ id: seatId.id });
+            if (!seat) {
+                res.status(404).send({ error: `Seat ${seatId.id} not found` });
+                return;
+            }
+            res.status(200).send(seat);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ error: "Internal error" });
+        }
+    });
+    
+    app.put("/seats/:id", async (req: Request, res: Response) => {
+        const validation = updateSeatValidation.validate({ ...req.params, ...req.body });
+    
+        if (validation.error) {
+            res.status(400).send(generateValidationErrorMessage(validation.error.details));
+            return;
+        }
+    
+        const updateSeatRequest = validation.value;
+        const seatUsecase = new SeatUsecase(AppDataSource);
+
+        try {
+            const seatUpdated = await seatUsecase.updateSeat(updateSeatRequest.id, updateSeatRequest);
+            if (!seatUpdated) {
+                res.status(404).send({ error: `Seat ${updateSeatRequest.id} not found` });
+                return;
+            }
+            res.status(200).send(seatUpdated);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ error: "Internal error" });
+        }
+    });
+    
+    app.delete("/seats/:id", async (req: Request, res: Response) => {
+        const validationResult = seatIdValidation.validate(req.params);
+    
+        if (validationResult.error) {
+            res.status(400).send(generateValidationErrorMessage(validationResult.error.details));
+            return;
+        }
+        const seatUsecase = new SeatUsecase(AppDataSource);
+
+        const seatId: SeatIdRequest = validationResult.value;
+    
+        try {
+            await seatUsecase.deleteSeat(seatId.id);
+            res.status(204).send();
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ error: "Internal error" });
+        }
+    });
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     app.post("/rooms", coordMiddleware, async (req: Request, res: Response) => {
         const validation = roomValidation.validate(req.body)
@@ -429,7 +660,7 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
-    app.get("/rooms/:roomid/planning",  combMiddleware,async (req: Request, res: Response) => {
+     app.get("/rooms/:roomid/planning",  combMiddleware,async (req: Request, res: Response) => {
         
         const validationResult = seanceRoomValidation.validate({...req.params,...req.body})
 
@@ -452,7 +683,8 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).json({ error: "Internal error" })
         }
 }) 
-
+ ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
 
 
 
