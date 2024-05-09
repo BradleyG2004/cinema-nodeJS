@@ -25,7 +25,50 @@ import { SeanceUsecase } from "../domain/seance-usecase";
 import { combMiddleware } from "./middleware/comb-middleware";
 
 export const initRoutes = (app: express.Express) => {
-
+    /**
+     * @openapi
+     * /movies:
+     *   post:
+     *     tags:
+     *       - Movies
+     *     summary: Create a new Movie
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               name:
+     *                 type: string
+     *                 minLength: 3
+     *               duration:
+     *                 type: number
+     *             required:
+     *               - name
+     *               - duration
+     *     responses:
+     *       '201':
+     *         description: Movie created
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/database/entities/movie'
+     *       '400':
+     *         description: Bad request
+     *       '500':
+     *         description: Internal Error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   description: error message
+     *               example:
+     *                 error: 'Internal error'
+     */
 
     app.post('/clients/signup', async (req: Request, res: Response) => {
         // res.json({"req":req.body})

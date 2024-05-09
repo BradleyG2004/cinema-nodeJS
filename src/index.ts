@@ -1,6 +1,7 @@
 import express from "express";
 import { initRoutes } from "./handlers/routes";
 import { AppDataSource } from "./database/database";
+import swaggerDocs from "./swagger/swagger";
 
 
 const main = async () => {
@@ -21,6 +22,7 @@ const main = async () => {
     initRoutes(app)
     app.listen(port, () => {
         console.log(`Server running on port ${port}`)
+        swaggerDocs(app,port)
     })
 }
 
