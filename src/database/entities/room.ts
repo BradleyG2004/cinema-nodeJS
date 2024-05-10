@@ -45,7 +45,7 @@ export class Room {
     
 
 
-    constructor(id: number, type:string,state:boolean,coordinator:Coordinator[], seance:Seance[], accessibility:boolean, description:string, createdAt: Date, capacity:number, name:string,picture:Picture[], seats: Seat[]) {
+    constructor(id: number, type:string,state:boolean,coordinator:Coordinator[], seance:Seance[], accessibility:boolean, description:string, createdAt: Date, capacity:number, name:string,picture:Picture[], seat: Seat[]) {
         this.id = id;
         this.coordinator=coordinator;
         this.picture=picture;
@@ -53,7 +53,6 @@ export class Room {
         this.type=type;
         this.state=state;
         this.name=name;
-        this.seats=seats;
         this.seance=seance;
         this.capacity=capacity;
         this.accessibility=accessibility;
