@@ -1,5 +1,6 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Room } from "./room";
+import { Ticket } from "./ticket";
 
 export enum SeatType {
     regular = "REGULAR",
@@ -10,35 +11,18 @@ export enum SeatType {
 @Entity()
 export class Seat {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @Column()
-    row: string;
-
-    @Column()
-    number: number;
+    position!: string;
 
     @Column({
         type: 'enum',
         enum: SeatType
     })
-    type: SeatType;
+    type!: SeatType;
 
-    @Column({ default: true })
-    isAvailable: boolean;
+    @ManyToOne(() => Room, room => room.seat)
+    room!: Room ;
 
-    @ManyToOne(() => Room, room => room.seats)
-    room: Room ;
-
-
-
-    constructor(id: number, row:string,  number: number, room: Room,type:SeatType,seatNumber:number,isAvailable:boolean) {
-        this.id = id
-        this.number=number
-        this.row = row
-        this.type=type
-        this.isAvailable=isAvailable
-        this.room=room
-        
-    }
 }

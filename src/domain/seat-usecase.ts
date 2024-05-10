@@ -7,19 +7,33 @@ export interface ListSeatFilter {
     page: number;
 }
 
+// Initialiser un tableau vide à deux dimensions
+const tab: string[][] = [];
+
+// Boucler sur la première dimension (A à E)
+for (let i = 0; i < 5; i++) {
+    // Initialiser un sous-tableau pour la deuxième dimension
+    const stab: string[] = [];
+    // Boucler sur la deuxième dimension (1 à 5)
+    for (let j = 1; j <= 5; j++) {
+        // Ajouter l'élément correspondant (A à E) suivi du chiffre (1 à 5) dans le sous-tableau
+        stab.push(String.fromCharCode(65 + i) + j);
+    }
+    // Ajouter le sous-tableau à la première dimension
+    tab.push(stab);
+}
+
+let i=0
+let j=0
+
+
 export interface UpdateSeatParams {
-    row?: string;
-    number?: number;
     type?: SeatType;
     isAvailable?: boolean;
-    roomId?: number;
 }
 
 export interface SeatRequest {
-    row: string;
-    number: number;
     type: SeatType;
-    isAvailable?: boolean;
     roomId: number;
 }
 
@@ -43,58 +57,61 @@ export class SeatUsecase {
         const seatFound = await seatRepo.findOneBy({ id });
         if (!seatFound) return null;
 
-        if (updateParams.row !== undefined) {
-            seatFound.row = updateParams.row;
-        }
-        if (updateParams.number !== undefined) {
-            seatFound.number = updateParams.number;
-        }
         if (updateParams.type !== undefined) {
             seatFound.type = updateParams.type;
-        }
-        if (updateParams.isAvailable !== undefined) {
-            seatFound.isAvailable = updateParams.isAvailable;
-        }
-        if (updateParams.roomId !== undefined) {
-            const roomRepo = this.db.getRepository(Room);
-            const room = await roomRepo.findOneBy({ id: updateParams.roomId });
-            if (room) {
-                seatFound.room = room;
-            }
         }
 
         const seatUpdated = await seatRepo.save(seatFound);
         return seatUpdated;
     }
 
-    async validateSeatRequest(seatRequest: SeatRequest): Promise<Room | null> {
-        const roomRepo = this.db.getRepository(Room);
-        const room = await roomRepo.findOneBy({ id: seatRequest.roomId });
-        return room ?? null;
-    }
+    // async validateSeatRequest(seatRequest: SeatRequest): Promise<Room | null> {
+    //     const roomRepo = this.db.getRepository(Room);
+    //     const room = await roomRepo.findOneBy({ id: seatRequest.roomId });
+    //     return room ?? null;
+    // }
 
-    async createSeat(seatRequest: SeatRequest): Promise<Seat | null> {
-        const room = await this.validateSeatRequest(seatRequest);
-        if (!room) return null;
+    async createSeat(seatRequest: SeatRequest): Promise<Seat | null | string> {
+        const room = this.db.getRepository(Room);
+        const roomconcerned = await room.findOne({
+            where: { id: seatRequest.roomId },
+            relations: ['seat']
+        });
+        if (!roomconcerned) return "Room not found";
+
+        const rows = await this.db.getRepository(Seat)
+            .createQueryBuilder("seat")
+            .where("seat.roomId = :value", { value: roomconcerned.id})
+            .getCount();
+
+        if(rows>roomconcerned.capacity) return "La salle ne peut plus disposer de place"
+
+        const seat = new Seat()
+        if(j==4 && i!=4){
+            i++
+            j=0
+        }else if(j!=4 && i!=4){
+            j++
+        }else if(i==4 && j==4){
+            i=0
+            j=0
+        }
+        seat.position=tab[i][j]
+        seat.room=roomconcerned
+        seat.type=seatRequest.type
 
         const seatRepo = this.db.getRepository(Seat);
-
-        const newSeat = seatRepo.create({
-            row: seatRequest.row,
-            number: seatRequest.number,
-            type: seatRequest.type,
-            isAvailable: seatRequest.isAvailable ?? true,
-            room: room
-        });
-
-        return await seatRepo.save(newSeat);
+        await seatRepo.save(seat);
+        return seat;
     }
 
-    async deleteSeat(id: number): Promise<void> {
+    async deleteSeat(id: number): Promise<string> {
         const seatRepo = this.db.getRepository(Seat);
         const seatToDelete = await seatRepo.findOneBy({ id });
         if (seatToDelete) {
             await seatRepo.remove(seatToDelete);
+            return "Seat Deleted !"
         }
+        return "Seat not found"
     }
 }
