@@ -31,4 +31,8 @@ export class Seance {
     @ManyToOne(() => Movie, (movie) => movie.seance)
     movie!: Movie
 
+    getDuration(): number {
+        const durationInMilliseconds = new Date(this.ending).getTime() - new Date(this.starting).getTime();
+        return Math.floor(durationInMilliseconds / 60000); 
+    }
 }

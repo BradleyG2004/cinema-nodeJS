@@ -8,8 +8,8 @@ import { LoginClientValidation, createClientValidation } from "./validators/clie
 import { sign } from "jsonwebtoken";
 import { Token } from "../database/entities/token"
 import { Coordinator } from "../database/entities/coordinator";
-import { listMovieValidation, movieIdValidation, movieValidation, updateMovieValidation } from "./validators/movie-validator";
-import { MovieUsecase } from "../domain/movie-usecase";
+import { UpdateMovieRequest, listMovieValidation, movieIdValidation, movieValidation, updateMovieValidation } from "./validators/movie-validator";
+import { MovieUsecase, UpdateMovieParams } from "../domain/movie-usecase";
 import { coordMiddleware } from "./middleware/coord-middleware";
 import { listRoomValidation, roomIdValidation, roomValidation, updateRoomValidation } from "./validators/room-validator";
 import { Room } from "../database/entities/room";
@@ -240,30 +240,34 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).send({ error: "Internal error" })
         }
     })
-    app.put("/movies/:id", coordMiddleware, async (req: Request, res: Response) => {
+    app.put("/movies/:id", async (req: Request, res: Response) => {
+        const validation = updateMovieValidation.validate({ ...req.params, ...req.body });
+        const movieUsecase = new MovieUsecase(AppDataSource);
 
-        const validation = updateMovieValidation.validate({ ...req.params, ...req.body })
 
         if (validation.error) {
-            res.status(400).send(generateValidationErrorMessage(validation.error.details))
-            return
-        } 
-
-        const updateMovieRequest = validation.value
-
-        try {
-            const movieUsecase = new MovieUsecase(AppDataSource);
-            const updatedMovie = await movieUsecase.updateMovie(updateMovieRequest.id, { ...updateMovieRequest })
-            if (updatedMovie === null) {
-                res.status(404).send({ "error": `movie ${updateMovieRequest.id} not found` })
-                return
-            }
-            res.status(200).send(updatedMovie)
-        } catch (error) {
-            console.log(error)
-            res.status(500).send({ error: "Internal error" })
+            res.status(400).send(generateValidationErrorMessage(validation.error.details));
+            return;
         }
-    })
+    
+        const updateMovieRequest: UpdateMovieRequest = validation.value;
+    
+        try {
+            const movieUpdated = await movieUsecase.updateMovie(updateMovieRequest.id, updateMovieRequest);
+            if (!movieUpdated) {
+                res.status(404).send({ error: `Movie ${updateMovieRequest.id} not found` });
+                return;
+            }
+            res.status(200).send(movieUpdated);
+        } catch (error: any) {
+            if (error.message.includes("Les séances suivantes ne respectent pas")) {
+                res.status(409).send({ error: error.message });
+            } else {
+                res.status(500).send({ error: "Internal error" });
+            }
+        }
+    });
+    
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  
  
@@ -406,9 +410,12 @@ export const initRoutes = (app: express.Express) => {
         try {
             const seatCreated = await seatUsecase.createSeat(seatRequest);
             res.status(201).send(seatCreated);
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({ error: "Internal error" });
+        } catch (error: any) {
+            if (error.message.includes("has reached its maximum capacity")) {
+                res.status(409).send({ error: error.message });
+            } else {
+                res.status(500).send({ error: "Internal error" });
+            }
         }
     });
     app.get("/seats", combMiddleware, async (req: Request, res: Response) => {

@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm";
 import { Movie } from "../database/entities/movie";
+import { Seance } from "../database/entities/seance";
 
 export interface ListMovieFilter {
     limit: number
@@ -8,6 +9,7 @@ export interface ListMovieFilter {
 
 export interface UpdateMovieParams {
     name?: string
+    duration?: number
 }
 
 export class MovieUsecase {
@@ -26,16 +28,33 @@ export class MovieUsecase {
         }
     }
 
-    async updateMovie(id: number, { name }: UpdateMovieParams): Promise<Movie | null> {
-        const repo = this.db.getRepository(Movie)
-        const moviefound = await repo.findOneBy({ id })
-        if (moviefound === null) return null
+    async updateMovie(id: number, { name, duration }: UpdateMovieParams): Promise<Movie | null> {
+        const repo = this.db.getRepository(Movie);
+        const seanceRepo = this.db.getRepository(Seance);
 
-        if (name) {
-            moviefound.name = name
+        const movieFound = await repo.findOneBy({ id });
+        if (!movieFound) return null;
+
+        // Vérifier les séances associées
+        if (duration !== undefined) {
+            const associatedSeances = await seanceRepo.find({ where: { movie: movieFound } });
+            const incompatibleSeances = associatedSeances.filter(seance => seance.getDuration() < duration + 15); // Inclure 15 minutes de publicité
+
+            if (incompatibleSeances.length > 0) {
+                throw new Error(
+                    `Les séances suivantes ne respectent pas la nouvelle durée du film :
+                    ${incompatibleSeances.map(s => `Seance ID: ${s.id}, Start: ${s.starting}, End: ${s.ending}`).join(", ")}.`
+                );
+            }
+
+            movieFound.duration = duration;
         }
 
-        const movieUpdate = await repo.save(moviefound)
-        return movieUpdate
+        if (name) {
+            movieFound.name = name;
+        }
+
+        const movieUpdated = await repo.save(movieFound);
+        return movieUpdated;
     }
 }

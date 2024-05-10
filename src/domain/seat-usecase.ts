@@ -71,7 +71,7 @@ export class SeatUsecase {
     //     return room ?? null;
     // }
 
-    async createSeat(seatRequest: SeatRequest): Promise<Seat | null | string> {
+async createSeat(seatRequest: SeatRequest): Promise<Seat | null | string> {
         const room = this.db.getRepository(Room);
         const roomconcerned = await room.findOne({
             where: { id: seatRequest.roomId },
@@ -84,7 +84,7 @@ export class SeatUsecase {
             .where("seat.roomId = :value", { value: roomconcerned.id})
             .getCount();
 
-        if(rows>roomconcerned.capacity) return "La salle ne peut plus disposer de place"
+        if(rows>roomconcerned.capacity-1) return "La salle ne peut plus disposer de place"
 
         const seat = new Seat()
         if(j==4 && i!=4){
