@@ -1,7 +1,9 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Coordinator } from "./coordinator";
 import { Client } from "./client";
 import { Seance } from "./seance";
+import { Seat } from "./seat";
+import { Occupation } from "./occupation";
 
     export enum TicketType {
         normal = "NORMAL",
@@ -12,40 +14,45 @@ import { Seance } from "./seance";
     export class Ticket {
     
         @PrimaryGeneratedColumn()
-        id: number;
+        id!: number;
     
         @CreateDateColumn({ type: "timestamp" })
-        createdAt: Date;
+        createdAt!: Date;
     
         @ManyToOne(() => Client, client => client.ticket)
-        client: Client;
-    
-        @ManyToOne(() => Seance, seance => seance.ticket)
-        seance: Seance;
+        client!: Client;
+
+        @OneToMany(() => Occupation, occupation => occupation.ticket)
+        occupation!: Occupation[];
     
         @Column({ nullable: true })
-        seatNumber?: number;
+        seatId!: number;
+
+        @Column({ nullable: true })
+        roomId!:number
     
         @Column({ default: true })
-        isValid: boolean;
+        isValid!: boolean;
     
         @Column({
             type: 'enum',
             enum: TicketType
         })
-        type: TicketType;
+        type!: TicketType;
     
     
   
 
 
-    constructor(id: number, seance:Seance, createdAt:Date, client: Client,type:TicketType,seatNumber:number,isValid:boolean) {
-        this.id = id
-        this.createdAt=createdAt
-        this.client = client
-        this.type=type
-        this.seance=seance
-        this.isValid=isValid
-        this.seatNumber=seatNumber
-    }
+    // constructor(id: number, seance:Seance[], createdAt:Date, client: Client,type:TicketType,seatId:number,roomId:number,isValid:boolean,occupation:Occupation[]) {
+    //     this.id = id
+    //     this.createdAt=createdAt
+    //     this.client = client
+    //     this.roomId=roomId
+    //     this.type=type
+    //     this.occupation=occupation
+    //     this.seance=seance
+    //     this.isValid=isValid
+    //     this.seatId=seatId
+    // }
 }

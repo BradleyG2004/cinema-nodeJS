@@ -2,8 +2,8 @@ import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, One
 import { Coordinator } from "./coordinator";
 import "reflect-metadata"
 import { Movie } from "./movie";
-import { Ticket } from "./ticket";
 import { Room } from "./room";
+import { Occupation } from "./occupation";
 
 @Entity()
 export class Seance {
@@ -19,11 +19,11 @@ export class Seance {
     @CreateDateColumn({type: "datetime"}) 
     createdAt!: Date
 
-    @ManyToMany(() => Ticket, (ticket) => ticket.seance)
-    ticket!: Ticket[]
-
     @ManyToOne(() => Coordinator, (coordinator) => coordinator.seance)
     coordinator!: Coordinator
+
+    @OneToMany(() => Occupation, (occupation) => occupation.seance)
+    occupation!: Occupation
 
     @ManyToOne(() => Room, (room) => room.seance)
     room!: Room
