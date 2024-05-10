@@ -24,6 +24,10 @@ import { listSeanceValidation, seanceIdValidation, seanceRoomValidation, seanceV
 import { SeanceUsecase } from "../domain/seance-usecase";
 import { combMiddleware } from "./middleware/comb-middleware";
 
+import { Transaction } from "../database/entities/Transaction";
+import {TransactionRequest,transactionIdValidation, TransactionIdRequest } from "./validators/Transaction-validator";
+import { TransactionUsecase } from "../domain/Transaction-usecase";
+
 export const initRoutes = (app: express.Express) => {
     /**
      * @openapi
@@ -572,4 +576,50 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).json({ error: "Internal error" })
         }
     })
-} 
+
+
+
+
+// Route pour créer une nouvelle transaction
+    app.post("/api/transactions", async (req: Request, res: Response) => {
+    try {
+        const { amount, type, clientId } = req.body;
+
+        const transactionUsecase = new TransactionUsecase(AppDataSource);
+        const createdTransaction = await transactionUsecase.createTransaction({ amount, type, clientId });
+
+        if (createdTransaction) {
+            res.status(201).json(createdTransaction);
+        } else {
+            res.status(500).json({ error: "Failed to create transaction" });
+        }
+    } catch (error) {
+        console.error("Error creating transaction:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+    //récupérer le détail d'une transaction
+    app.get("/api/transactions/:id", async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const transactionId = parseInt(id, 10);
+
+            const transactionUsecase = new TransactionUsecase(AppDataSource);
+            const transaction = await transactionUsecase.getTransactionById(transactionId);
+
+            if (transaction) {
+                res.status(200).json(transaction);
+            } else {
+                res.status(404).json({ error: `Transaction with ID ${transactionId} not found` });
+            }
+        } catch (error) {
+            console.error("Error fetching transaction:", error);
+            res.status(500).json({ error: "Internal server error" });
+        }
+    });
+
+
+
+
+}
