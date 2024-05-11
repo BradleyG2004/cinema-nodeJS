@@ -1,2 +1,33 @@
-portBD=8080
-portAPP=3000
+Une brève description de ce que fait ce projet et pour qui il est utile.
+
+Prérequis
+
+Pour exécuter ce projet, vous aurez besoin d'installer les éléments suivants :
+
+Node.js : Plateforme de serveur JavaScript.
+Docker : Pour containeriser et exécuter l'application.
+Git : Pour le versionnement et la gestion du code source (facultatif pour cloner le dépôt).
+Installation
+
+Pour configurer l'environnement de développement local, suivez ces étapes :
+npm install
+npm uninstall bcrypt
+npm install bcrypt
+npm install -D nodemon
+
+
+Lancer l'Application : 
+
+Environnement Local :  
+ Pour démarrer l'application en local :
+
+ 
+npm run start:dev
+
+
+  Avec Docker
+Pour construire et démarrer l'application avec Docker :
+ 
+docker-compose up --build
+
+L'application est accessible via http://localhost:3000 une fois démarrée. Consultez la documentation de l'API pour plus de détails sur http://localhost:3000/api-docs pour une interface Swagger interactive.
