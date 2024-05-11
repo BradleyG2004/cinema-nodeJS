@@ -74,8 +74,17 @@ export class SeatUsecase {
     }
 
     async createSeat(seatRequest: SeatRequest): Promise<Seat | null> {
-        const room = await this.validateSeatRequest(seatRequest);
+        const roomRepo = this.db.getRepository(Room);
+        const room = await roomRepo.findOne({
+            where: { id: seatRequest.roomId },
+            relations: ['seats']
+        });
         if (!room) return null;
+
+        // Vérifiez que le nombre de sièges ne dépasse pas la capacité
+        if (room.seats.length >= room.capacity) {
+            throw new Error(`Room ${room.name} has reached its maximum capacity of ${room.capacity} seats.`);
+        }
 
         const seatRepo = this.db.getRepository(Seat);
 

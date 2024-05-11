@@ -3,6 +3,7 @@ import "reflect-metadata"
 import { Seance } from "./seance";
 import { Picture } from "./picture";
 import { Coordinator } from "./coordinator";
+import { Seat } from "./seat";
 @Entity()
 export class Room {
     @PrimaryGeneratedColumn()
@@ -35,17 +36,22 @@ export class Room {
     @OneToMany(() => Picture, picture => picture.room)
     picture: Picture[];
 
+    @OneToMany(() => Seat, seat => seat.room)
+    seats: Seat[];
+
     @ManyToMany(() => Coordinator, (coordinator) => coordinator.room)
     @JoinTable()
     coordinator: Coordinator[]
+    
 
-    constructor(id: number, type:string,state:boolean,coordinator:Coordinator[], seance:Seance[], accessibility:boolean, description:string, createdAt: Date, capacity:number, name:string,picture:Picture[]) {
+    constructor(id: number, type:string,state:boolean,coordinator:Coordinator[], seance:Seance[], accessibility:boolean, description:string, createdAt: Date, capacity:number, name:string,picture:Picture[], seats: Seat[]) {
         this.id = id;
         this.coordinator=coordinator;
         this.picture=picture;
         this.type=type;
         this.state=state;
         this.name=name;
+        this.seats=seats;
         this.seance=seance;
         this.capacity=capacity;
         this.accessibility=accessibility;
