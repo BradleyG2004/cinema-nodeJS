@@ -19,10 +19,10 @@ import { Occupation } from "./occupation";
         @CreateDateColumn({ type: "timestamp" })
         createdAt!: Date;
     
-        @ManyToOne(() => Client, client => client.ticket)
+        @ManyToOne(() => Client, client => client.tickets)
         client!: Client;
 
-        @OneToMany(() => Occupation, occupation => occupation.ticket)
+        @OneToMany(() => Occupation, occupation => occupation.ticket) 
         occupation!: Occupation[];
     
         @Column({ nullable: true })
@@ -30,6 +30,9 @@ import { Occupation } from "./occupation";
 
         @Column({ nullable: true })
         roomId!:number
+
+        @Column({ default: true })
+        price!:number
     
         @Column({ default: true })
         isValid!: boolean;

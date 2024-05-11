@@ -102,7 +102,7 @@ export class TicketUsecase {
         });
         if(seatt){
             if(seatt.room.name!=seance.room.name){
-                return " La seance et la place ne sont pas dans la meme salle "+seatt.room.name+"<\-room de la place,"+seance.room.name+"<\-room de la seance"
+                return " La seance et la place ne sont pas dans la meme salle "
             }
         }
         ticket.seatId = ticketRequest.seatId;

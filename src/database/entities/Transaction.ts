@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Client } from "./client";
+import { Eaccount } from "./eaccount";
 
 @Entity()
 export class Transaction {
@@ -14,6 +16,9 @@ export class Transaction {
     @Column({ type: "datetime", default: () => "CURRENT_TIMESTAMP" })
     createdAt!: Date;
 
-    @Column({ nullable: true })
-    clientId!: number;
+    @ManyToOne(() => Client, (client) => client.transactions)
+    client!: Client
+
+    @ManyToOne(() => Eaccount, (eaccount) => eaccount.transactions)
+    eaccount!: Eaccount
 }

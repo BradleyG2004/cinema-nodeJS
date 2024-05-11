@@ -20,8 +20,8 @@ export class Seance {
     createdAt!: Date;
 
     // Utilisez `ticket` au lieu de `tickets` ici
-    @ManyToMany(() => Ticket, (ticket) => ticket.seance)
-    tickets!: Ticket[]; // Assurez-vous de définir le type correctement
+    //@ManyToMany(() => Ticket, (ticket) => ticket.seance)
+    //tickets!: Ticket[]; // Assurez-vous de définir le type correctement
 
     @ManyToOne(() => Coordinator, (coordinator) => coordinator.seance)
     coordinator!: Coordinator;

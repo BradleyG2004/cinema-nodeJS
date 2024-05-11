@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } f
 import { Token } from "./token";
 import { Ticket } from "./ticket";
 import { Transaction } from "./Transaction";
+import { Eaccount } from "./eaccount";
 
 @Entity()
 export class Client {
@@ -23,10 +24,13 @@ export class Client {
     @OneToMany(() => Token, token => token.client)
     tokens!: Token[];
 
+    // @OneToMany(() => Eaccount, account => account.client)
+    // accounts!: Token[];
+
     @OneToMany(() => Ticket, ticket => ticket.client)
     tickets!: Ticket[];
 
-    @OneToMany(() => Transaction, transaction => transaction.clientId)
+    @OneToMany(() => Transaction, transaction => transaction.client)
     transactions!: Transaction[];
 
 
