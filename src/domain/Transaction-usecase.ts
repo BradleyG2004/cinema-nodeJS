@@ -7,6 +7,7 @@ export interface CreateTransactionParams {
     type: 'deposit' | 'withdrawal' | 'ticket_purchase';
     clientId: number;
 }
+
 export class TransactionUsecase {
     private transactionRepo: Repository<Transaction>;
     private clientRepo: Repository<Client>;
@@ -18,13 +19,13 @@ export class TransactionUsecase {
 
     async getTransactionsByClient(clientId: number): Promise<Transaction[]> {
         try {
-            const client = await this.clientRepo.findOne({where:{id:clientId}});
+            const client = await this.clientRepo.findOne({ where: { id: clientId } });
             if (!client) {
                 throw new Error(`Client with ID ${clientId} not found.`);
             }
 
             const transactions = await this.transactionRepo.find({
-                where: { client }
+                where: { clientId }
             });
 
             return transactions;
@@ -36,7 +37,7 @@ export class TransactionUsecase {
 
     async getTransactionById(id: number): Promise<Transaction | null> {
         try {
-            const transaction = await this.transactionRepo.findOne({where:{id:id}});
+            const transaction = await this.transactionRepo.findOne({ where: { id } });
             return transaction || null;
         } catch (error) {
             console.error("Error fetching transaction by ID:", error);
@@ -58,7 +59,7 @@ export class TransactionUsecase {
         const { amount, type, clientId } = params;
 
         try {
-            const client = await this.clientRepo.findOne({where:{id:clientId}});
+            const client = await this.clientRepo.findOne({ where: { id: clientId } });
             if (!client) {
                 throw new Error(`Client with ID ${clientId} not found. Cannot create transaction.`);
             }
@@ -66,7 +67,7 @@ export class TransactionUsecase {
             const newTransaction = this.transactionRepo.create({
                 amount,
                 type,
-                client
+                clientId
             });
 
             const savedTransaction = await this.transactionRepo.save(newTransaction);
@@ -79,7 +80,7 @@ export class TransactionUsecase {
 
     async updateTransaction(id: number, amount: number): Promise<Transaction | null> {
         try {
-            const transaction = await this.transactionRepo.findOne({where:{id:id}});
+            const transaction = await this.transactionRepo.findOne({ where: { id } });
             if (!transaction) {
                 throw new Error(`Transaction with ID ${id} not found. Cannot update.`);
             }

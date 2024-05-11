@@ -620,6 +620,33 @@ export const initRoutes = (app: express.Express) => {
     });
 
 
+    /*app.get("/api/statistiques", async (req: Request, res: Response) => {
+        try {
+            // Utiliser un cas d'utilisation ou un service pour récupérer les statistiques
+            const seanceUsecase = new SeanceUsecase(AppDataSource);
+            const frequentationStatistiques = await seanceUsecase.getFrequentationStatistics();
+
+            res.status(200).json(frequentationStatistiques);
+        } catch (error) {
+            console.error("Error fetching attendance statistics:", error);
+            res.status(500).json({ error: "Internal server error" });
+        }
+    });*/
+    app.get("/api/statistiques", async (req: Request, res: Response) => {
+        try {
+
+            const seanceUsecase = new SeanceUsecase(AppDataSource);
+
+            const frequentationStats = await seanceUsecase.getFrequentationStatistics();
+
+            res.status(200).json(frequentationStats);
+        } catch (error) {
+            console.error("Error fetching attendance statistics:", error);
+            res.status(500).json({ error: "Internal server error" });
+        }
+    });
+
+
 
 
 }

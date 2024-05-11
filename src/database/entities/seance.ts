@@ -1,9 +1,9 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Coordinator } from "./coordinator";
-import "reflect-metadata"
 import { Movie } from "./movie";
 import { Ticket } from "./ticket";
 import { Room } from "./room";
+import { Attendee } from "./attendee";
 
 @Entity()
 export class Seance {
@@ -13,22 +13,25 @@ export class Seance {
     @Column({ type: "datetime" })
     starting!: Date;
 
-    @Column({type: "datetime"})
-    ending!: Date
+    @Column({ type: "datetime" })
+    ending!: Date;
 
-    @CreateDateColumn({type: "datetime"}) 
-    createdAt!: Date
+    @CreateDateColumn({ type: "datetime" })
+    createdAt!: Date;
 
+    // Utilisez `ticket` au lieu de `tickets` ici
     @ManyToMany(() => Ticket, (ticket) => ticket.seance)
-    ticket!: Ticket[]
+    tickets!: Ticket[]; // Assurez-vous de définir le type correctement
 
     @ManyToOne(() => Coordinator, (coordinator) => coordinator.seance)
-    coordinator!: Coordinator
+    coordinator!: Coordinator;
 
     @ManyToOne(() => Room, (room) => room.seance)
-    room!: Room
+    room!: Room;
 
     @ManyToOne(() => Movie, (movie) => movie.seance)
-    movie!: Movie
+    movie!: Movie;
 
+    @OneToMany(() => Attendee, (attendee) => attendee.seance)
+    attendees!: Attendee[];
 }
