@@ -1,21 +1,27 @@
 import Joi from "joi";
 import { TicketType } from "../../database/entities/ticket";
 
-export const ticketValidation = Joi.object<TicketRequest>({
-    clientId: Joi.number().required(),
+
+
+
+export const ticketValidation = Joi.object<TicketRequest>({ 
+    autorization:Joi.string().required(),
     seanceId: Joi.number().required(),
-    seatNumber: Joi.number().optional(),
-    isValid: Joi.boolean().optional(),
+    seatId: Joi.number().required(),
     type: Joi.string().valid('NORMAL', 'SUPER').required()
 }).options({ abortEarly: false });
 
 export interface TicketRequest {
+    autorization:string;
     clientId: number;
     seanceId: number;
-    seatNumber?: number;
-    isValid?: boolean;
+    seatId: number;
     type: TicketType;
 }
+
+
+
+
 export const listTicketValidation = Joi.object<ListTicketRequest>({
     page: Joi.number().min(1).optional(),
     limit: Joi.number().min(1).optional()
@@ -35,11 +41,13 @@ export interface TicketIdRequest {
 export const updateTicketValidation = Joi.object<UpdateTicketRequest>({
     id: Joi.number().required(),
     seatNumber: Joi.number().optional(),
-    isValid: Joi.boolean().optional()
+    isValid: Joi.boolean().optional(),
+    type: Joi.string().valid('NORMAL', 'SUPER').required()
 });
 
 export interface UpdateTicketRequest {
     id: number;
     seatNumber?: number;
     isValid?: boolean;
+    type?: TicketType;
 }

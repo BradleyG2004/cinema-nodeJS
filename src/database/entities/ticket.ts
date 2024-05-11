@@ -17,10 +17,10 @@ import { Seance } from "./seance";
         @CreateDateColumn({ type: "timestamp" })
         createdAt: Date;
     
-        @ManyToOne(() => Client, client => client.ticket)
+        @ManyToOne(() => Client, client => client.tickets)
         client: Client;
     
-        @ManyToOne(() => Seance, seance => seance.ticket)
+        @ManyToOne(() => Seance, seance => seance.tickets)
         seance: Seance;
     
         @Column({ nullable: true })
