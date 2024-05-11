@@ -31,7 +31,47 @@ import { SeatUsecase } from "../domain/seat-usecase";
 import { Seat } from "../database/entities/seat";
 
 export const initRoutes = (app: express.Express) => {
-  
+  /**
+ * @openapi
+ * /clients/signup:
+ *   post:
+ *     tags:
+ *       - Clients
+ *     summary: Register a new client
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       201:
+ *         description: Client successfully registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 email:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
+
     app.post('/clients/signup', async (req: Request, res: Response) => {
         // res.json({"req":req.body})
         try {
@@ -58,6 +98,43 @@ export const initRoutes = (app: express.Express) => {
             return
         }
     })
+/**
+ * @openapi
+ * /clients/login:
+ *   post:
+ *     tags:
+ *       - Clients
+ *     summary: Client login
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       200:
+ *         description: Authentication successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid email or password
+ *       500:
+ *         description: Internal server error
+ */
 
     app.post('/clients/login', async (req: Request, res: Response) => {
         try {
@@ -101,6 +178,37 @@ export const initRoutes = (app: express.Express) => {
  
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @openapi
+ * /coordinators/signup:
+ *   post:
+ *     tags:
+ *       - Coordinators
+ *     summary: Register a new coordinator
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *               role:
+ *                 type: integer
+ *                 description: ID of the role
+ *     responses:
+ *       201:
+ *         description: Coordinator successfully registered
+ *       400:
+ *         description: Validation error or role not found
+ *       500:
+ *         description: Internal server error
+ */
 
     app.post('/coordinators/signup', async (req: Request, res: Response) => {
         // res.json({"req":req.body})
@@ -134,6 +242,43 @@ export const initRoutes = (app: express.Express) => {
             return
         }
     })
+/**
+ * @openapi
+ * /coordinators/login:
+ *   post:
+ *     tags:
+ *       - Coordinators
+ *     summary: Coordinator login
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       200:
+ *         description: Authentication successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid email or password
+ *       500:
+ *         description: Internal server error
+ */
 
     app.post('/coordinators/login', async (req: Request, res: Response) => {
         try {
