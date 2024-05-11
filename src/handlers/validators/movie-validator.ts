@@ -1,4 +1,24 @@
 import Joi from "joi";
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     CreateMovie:
+ *       type: object
+ *       required:
+ *         - name
+ *         - duration
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: Le nom du film
+ *         duration:
+ *           type: number
+ *           description: La duree en minutes
+ *       example:
+ *         name: Titanic
+ *         price: 60
+ */
 export const movieValidation = Joi.object<MovieRequest>({
     name: Joi.string()
         .min(3)

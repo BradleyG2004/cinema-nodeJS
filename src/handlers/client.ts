@@ -6,6 +6,7 @@ import { generateValidationErrorMessage } from "./validators/generate-validation
 import { Client } from "../database/entities/client";
 import { sign } from "jsonwebtoken";
 import { Token } from "../database/entities/token";
+import swaggerDocs from "../swagger/swagger";
 
 export const ClientHandler = (app: express.Express) => {
     app.post('/auth/signup', async (req: Request, res: Response) => {

@@ -9,7 +9,12 @@ export interface ListRoomFilter {
 }
 
 export interface UpdateRoomParams {
-    state:boolean
+    type?:string,
+    name?:string,
+    description?:string,
+    capacity?:number,
+    state?:boolean,
+    accessibility?: boolean,
 }
 
 export class RoomUsecase {
@@ -28,7 +33,7 @@ export class RoomUsecase {
         }
     }
 
-    async updateRoom(id: number,authorization:string ,{ state }: UpdateRoomParams): Promise<Room |null> {
+    async updateRoom(id: number,authorization:string ,params: UpdateRoomParams): Promise<Room |null> {
         const repo = this.db.getRepository(Room)
         const roomfound = await repo.findOneBy({ id })
         if (roomfound === null) return null   
@@ -44,8 +49,13 @@ export class RoomUsecase {
         
         user.room=[roomfound]
         const maintain = await repo2.save(user)
-
-        roomfound.state = state
+        
+        if(params.type){roomfound.type = params.type}
+        if(params.name){roomfound.name = params.name}
+        if(params.description){roomfound.description = params.description}
+        if(params.capacity){roomfound.capacity = params.capacity}
+        if(params.state){roomfound.state = params.state}
+        if(params.accessibility){roomfound.accessibility = params.accessibility}
 
         const roomUpdate = await repo.save(roomfound)
         return roomfound
