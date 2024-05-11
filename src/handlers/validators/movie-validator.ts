@@ -56,12 +56,12 @@ export interface MovieIdRequest {
 
 export const updateMovieValidation = Joi.object<UpdateMovieRequest>({
     id: Joi.number().required(),
-    name: Joi.string()
-    .min(3)
-    .required()
-})
+    name: Joi.string().min(3).optional(),
+    duration: Joi.number().min(1).optional()
+}).options({ abortEarly: false });
 
 export interface UpdateMovieRequest {
-    id: number
-    name: string
+    id: number;
+    name?: string;
+    duration?: number;
 }

@@ -1,9 +1,9 @@
 import { Column, CreateDateColumn, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Coordinator } from "./coordinator";
 import { Movie } from "./movie";
-import { Ticket } from "./ticket";
 import { Room } from "./room";
 import { Attendee } from "./attendee";
+import { Occupation } from "./occupation";
 
 @Entity()
 export class Seance {
@@ -26,6 +26,9 @@ export class Seance {
     @ManyToOne(() => Coordinator, (coordinator) => coordinator.seance)
     coordinator!: Coordinator;
 
+    @OneToMany(() => Occupation, (occupation) => occupation.seance)
+    occupation!: Occupation
+
     @ManyToOne(() => Room, (room) => room.seance)
     room!: Room;
 
@@ -35,3 +38,8 @@ export class Seance {
     @OneToMany(() => Attendee, (attendee) => attendee.seance)
     attendees!: Attendee[];
 }
+//     getDuration(): number {
+//         const durationInMilliseconds = new Date(this.ending).getTime() - new Date(this.starting).getTime();
+//         return Math.floor(durationInMilliseconds / 60000); 
+//     }
+// }
