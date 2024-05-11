@@ -65,6 +65,44 @@ export class TicketUsecase {
 
         return { client, seance };
     }
+    async useTicketForSeance(ticketId: number, seanceId: number): Promise<any> {
+        const ticketRepo = this.db.getRepository(Ticket);
+        const ticket = await ticketRepo.findOneBy({ id: ticketId });
+    
+        if (!ticket) {
+            return { status: 'error', message: 'Ticket not found' };
+        }
+    
+        if (ticket.type === 'SUPER' && ticket.sessionsUsed >= 10) {
+            return { status: 'error', message: 'Super Ticket has already been used 10 times' };
+        }
+    
+         if (ticket.type === 'SUPER') {
+            ticket.sessionsUsed++;
+            if (ticket.sessionsUsed >= 10) {
+                ticket.isValid = false;   
+            }
+            await ticketRepo.save(ticket);
+        }
+    
+        return { status: 'success', message: 'Ticket is valid for this seance' };
+    }
+    
+    
+    
+    async listTicketsByClient(clientId: number, filter: ListTicketFilter): Promise<{ tickets: Ticket[]; totalCount: number; }> {
+        const query = this.db.createQueryBuilder(Ticket, 'ticket')
+                            .where("ticket.clientId = :clientId", { clientId })
+                            .skip((filter.page - 1) * filter.limit)
+                            .take(filter.limit);
+    
+        const [tickets, totalCount] = await query.getManyAndCount();
+        return {
+            tickets,
+            totalCount
+        };
+    }
+    
     async createTicket(ticketRequest: TicketRequest): Promise<Ticket | null> {
         const validation = await this.validateTicketRequest(ticketRequest);
         if (!validation) return null;

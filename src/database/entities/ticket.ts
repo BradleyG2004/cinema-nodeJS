@@ -25,7 +25,10 @@ import { Seance } from "./seance";
     
         @Column({ nullable: true })
         seatNumber?: number;
-    
+
+        @Column({ default: 0 })
+        sessionsUsed: number; 
+
         @Column({ default: true })
         isValid: boolean;
     
@@ -39,7 +42,7 @@ import { Seance } from "./seance";
   
 
 
-    constructor(id: number, seance:Seance, createdAt:Date, client: Client,type:TicketType,seatNumber:number,isValid:boolean) {
+    constructor(id: number, seance:Seance, createdAt:Date, client: Client,type:TicketType,seatNumber:number,isValid:boolean,sessionsUsed: number) {
         this.id = id
         this.createdAt=createdAt
         this.client = client
@@ -47,5 +50,6 @@ import { Seance } from "./seance";
         this.seance=seance
         this.isValid=isValid
         this.seatNumber=seatNumber
+        this.sessionsUsed=sessionsUsed
     }
 }

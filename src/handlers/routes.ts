@@ -861,6 +861,8 @@ app.post("/tickets", async (req: Request, res: Response) => {
             res.status(500).send({ error: "Internal server error" });
         }
     });
+
+  
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    /**
@@ -1705,4 +1707,70 @@ app.post("/tickets", async (req: Request, res: Response) => {
             res.status(500).json({ error: "Internal error" })
         }
     })
+/**
+ * @openapi
+ * /seances/{seanceId}/tickets/{ticketId}/use:
+ *   post:
+ *     tags:
+ *       - Tickets
+ *     summary: Use a ticket for a specific seance
+ *     description: Validates and records the usage of a ticket for a specified seance, specially handling Super Tickets which can be used multiple times.
+ *     parameters:
+ *       - in: path
+ *         name: seanceId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the seance for which the ticket is being used.
+ *       - in: path
+ *         name: ticketId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the ticket being used.
+ *     responses:
+ *       200:
+ *         description: The ticket has been successfully used for the seance.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Ticket is valid for this seance.'
+ *       400:
+ *         description: There was an error in using the ticket for the seance, such as the ticket being fully used or does not exist.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: 'Super Ticket has already been used 10 times or ticket does not match this seance.'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: 'Internal error'
+ */
+
+    app.post("/seances/:seanceId/tickets/:ticketId/use", async (req: Request, res: Response) => {
+        const { seanceId, ticketId } = req.params;
+         const ticketUseCase = new TicketUsecase(AppDataSource);
+
+        const result = await ticketUseCase.useTicketForSeance(parseInt(ticketId), parseInt(seanceId));
+    
+        if (result.status === 'error') {
+            return res.status(400).send({ error: result.message });
+        }
+    
+        res.status(200).send({ message: result.message });
+    });
 } 

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : mysql-db
--- Généré le : sam. 13 avr. 2024 à 21:17
+-- Généré le : ven. 10 mai 2024 à 17:11
 -- Version du serveur : 8.3.0
 -- Version de PHP : 8.2.8
 
@@ -119,27 +119,55 @@ CREATE TABLE `job` (
 CREATE TABLE `movie` (
   `id` int NOT NULL,
   `name` varchar(255) NOT NULL,
+  `duration` int NOT NULL,
   `createdAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-  `coordinatorId` int DEFAULT NULL,
-  `duration` int NOT NULL
+  `coordinatorId` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Déchargement des données de la table `movie`
 --
 
-INSERT INTO `movie` (`id`, `name`, `createdAt`, `coordinatorId`, `duration`) VALUES
-(1, 'Moshx', '2024-04-11 22:58:25.205125', 1, 60),
-(2, 'Thanos the CEO', '2024-04-11 23:24:47.381209', 1, 60),
-(3, 'Le corps aux trois problemes', '2024-04-11 23:25:04.722226', 1, 60),
-(4, 'Moi,Beau et Zem-muhr ', '2024-04-11 23:26:01.562471', 1, 60),
-(19, 'Doctor Goofy', '2024-04-12 00:30:51.461053', 3, 60),
-(20, 'Doctor Gool', '2024-04-12 00:31:23.642742', 1, 60),
-(21, 'Andy', '2024-04-12 00:33:59.093108', 1, 60),
-(22, 'Crenshaw', '2024-04-12 00:34:57.991490', 1, 60),
-(23, 'Cran the dull', '2024-04-12 01:03:14.524296', 1, 60),
-(24, 'Grvwwi', '2024-04-13 15:21:40.809625', 1, 60),
-(25, 'Salwii', '2024-04-13 15:29:57.270550', 1, 60);
+INSERT INTO `movie` (`id`, `name`, `duration`, `createdAt`, `coordinatorId`) VALUES
+(1, 'Moshx', 60, '2024-04-11 22:58:25.205125', 1),
+(2, 'Thanos the CEO', 60, '2024-04-11 23:24:47.381209', 1),
+(3, 'Le corps aux trois problemes', 60, '2024-04-11 23:25:04.722226', 1),
+(4, 'Moi,Beau et Zem-muhr ', 60, '2024-04-11 23:26:01.562471', 1),
+(19, 'Doctor Goofy', 60, '2024-04-12 00:30:51.461053', 3),
+(20, 'Doctor Gool', 60, '2024-04-12 00:31:23.642742', 1),
+(21, 'Andy', 60, '2024-04-12 00:33:59.093108', 1),
+(22, 'Crenshaw', 60, '2024-04-12 00:34:57.991490', 1),
+(23, 'Cran the dull', 60, '2024-04-12 01:03:14.524296', 1),
+(24, 'Grvwwi', 60, '2024-04-13 15:21:40.809625', 1),
+(25, 'Salwii', 60, '2024-04-13 15:29:57.270550', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `occupation`
+--
+
+CREATE TABLE `occupation` (
+  `id` int NOT NULL,
+  `roomId` int DEFAULT NULL,
+  `seatId` int DEFAULT NULL,
+  `starting` datetime NOT NULL,
+  `ending` datetime NOT NULL,
+  `ticketId` int DEFAULT NULL,
+  `seanceId` int DEFAULT NULL,
+  `createdAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Déchargement des données de la table `occupation`
+--
+
+INSERT INTO `occupation` (`id`, `roomId`, `seatId`, `starting`, `ending`, `ticketId`, `seanceId`, `createdAt`) VALUES
+(2, 14, 37, '2024-04-13 17:55:27', '2024-04-13 19:25:27', 4, 18, '2024-05-10 12:31:21.249922'),
+(3, 14, 38, '2024-04-13 17:55:27', '2024-04-13 19:25:27', 5, 18, '2024-05-10 12:31:21.249922'),
+(4, 14, 39, '2024-04-13 17:55:27', '2024-04-13 19:25:27', 6, 18, '2024-05-10 12:31:21.249922'),
+(5, 14, 40, '2024-04-13 17:55:27', '2024-04-13 19:25:27', 7, 18, '2024-05-10 12:31:21.249922'),
+(6, 14, 42, '2024-04-13 17:55:27', '2024-04-13 19:25:27', 8, 18, '2024-05-10 12:31:21.249922');
 
 -- --------------------------------------------------------
 
@@ -262,15 +290,90 @@ INSERT INTO `seance` (`id`, `starting`, `ending`, `createdAt`, `coordinatorId`, 
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `seance_ticket_ticket`
+--
+
+CREATE TABLE `seance_ticket_ticket` (
+  `seanceId` int NOT NULL,
+  `ticketId` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `seat`
+--
+
+CREATE TABLE `seat` (
+  `id` int NOT NULL,
+  `type` enum('REGULAR','PREMIUM','VIP') NOT NULL,
+  `roomId` int DEFAULT NULL,
+  `position` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Déchargement des données de la table `seat`
+--
+
+INSERT INTO `seat` (`id`, `type`, `roomId`, `position`) VALUES
+(90, 'VIP', 14, 'A2'),
+(91, 'VIP', 14, 'A3'),
+(92, 'VIP', 14, 'A4'),
+(93, 'VIP', 14, 'A5'),
+(94, 'VIP', 14, 'B1'),
+(95, 'VIP', 14, 'B2'),
+(96, 'VIP', 14, 'B3'),
+(97, 'VIP', 14, 'B4'),
+(98, 'VIP', 14, 'B5'),
+(99, 'VIP', 14, 'C1'),
+(100, 'VIP', 14, 'C2'),
+(101, 'VIP', 14, 'C3'),
+(102, 'VIP', 14, 'C4'),
+(103, 'VIP', 14, 'C5'),
+(104, 'VIP', 14, 'D1'),
+(105, 'VIP', 14, 'D2'),
+(106, 'VIP', 14, 'D3'),
+(107, 'VIP', 14, 'D4'),
+(108, 'VIP', 14, 'D5'),
+(109, 'VIP', 14, 'E1');
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `seat_ticket_ticket`
+--
+
+CREATE TABLE `seat_ticket_ticket` (
+  `seatId` int NOT NULL,
+  `ticketId` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `ticket`
 --
 
 CREATE TABLE `ticket` (
   `id` int NOT NULL,
-  `createdAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `createdAt` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `isValid` tinyint NOT NULL DEFAULT '1',
   `type` enum('NORMAL','SUPER') NOT NULL,
-  `clientId` int DEFAULT NULL
+  `clientId` int DEFAULT NULL,
+  `seatId` int DEFAULT NULL,
+  `roomId` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Déchargement des données de la table `ticket`
+--
+
+INSERT INTO `ticket` (`id`, `createdAt`, `isValid`, `type`, `clientId`, `seatId`, `roomId`) VALUES
+(4, '2024-05-10 12:12:22.992831', 1, 'SUPER', 11, 37, 14),
+(5, '2024-05-10 12:16:23.132979', 1, 'SUPER', 11, 38, 14),
+(6, '2024-05-10 12:16:32.164692', 1, 'SUPER', 11, 39, 14),
+(7, '2024-05-10 12:16:38.105189', 1, 'SUPER', 11, 40, 14),
+(8, '2024-05-10 12:16:50.574918', 1, 'SUPER', 11, 42, 14);
 
 -- --------------------------------------------------------
 
@@ -305,7 +408,10 @@ INSERT INTO `token` (`id`, `token`, `coordinatorId`, `clientId`) VALUES
 (10, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6MiwiZW1haWwiOiJNYXRoaXNVcmlAZ21haWwuY29tIiwiaWF0IjoxNzEyODg0MDI1LCJleHAiOjE3MTI5NzA0MjV9.Q-IhKFa-vKJetuY1901XNZqjdIs7gNeF_iFS_vcGvcU', 2, NULL),
 (11, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6MTEsImVtYWlsIjoiR29sbW9uMkRAZ21haWwuY29tIiwiaWF0IjoxNzEyODg0MjkxLCJleHAiOjE3MTI5NzA2OTF9.94-DIobaB8CopRv0hKOUdtRyETTLiQW41O39v_WP4jc', NULL, 11),
 (12, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6MiwiZW1haWwiOiJNYXRoaXNVcmlAZ21haWwuY29tIiwiaWF0IjoxNzEyOTIxOTQ3LCJleHAiOjE3MTMwMDgzNDd9.5576-v2ZCaKMWycRGoIzNJWklfLrEzhGrr85fE9VPbo', 2, NULL),
-(13, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6MiwiZW1haWwiOiJNYXRoaXNVcmlAZ21haWwuY29tIiwiaWF0IjoxNzEzMDE2MzU4LCJleHAiOjE3MTMxMDI3NTh9.q0g7-brH_OGCzjeU-xLMrLQvit4ulkYj1qlrpBTbUPI', 2, NULL);
+(13, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6MiwiZW1haWwiOiJNYXRoaXNVcmlAZ21haWwuY29tIiwiaWF0IjoxNzEzMDE2MzU4LCJleHAiOjE3MTMxMDI3NTh9.q0g7-brH_OGCzjeU-xLMrLQvit4ulkYj1qlrpBTbUPI', 2, NULL),
+(14, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6MTEsImVtYWlsIjoiR29sbW9uMkRAZ21haWwuY29tIiwiaWF0IjoxNzE1MjgzNDcwLCJleHAiOjE3MTUzNjk4NzB9.h1e4wiKIKljYN_48L41Ure477-KvC0CAmoAdWC9arN4', NULL, 11),
+(15, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6MTEsImVtYWlsIjoiR29sbW9uMkRAZ21haWwuY29tIiwiaWF0IjoxNzE1Mjg1OTI0LCJleHAiOjE3MTUzNzIzMjR9.3enmd5izojnrZTScjZPf2v0h1sNGwsKygz3mXLbDf6c', NULL, 11),
+(16, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6MiwiZW1haWwiOiJNYXRoaXNVcmlAZ21haWwuY29tIiwiaWF0IjoxNzE1MzU1NzgzLCJleHAiOjE3MTU0NDIxODN9.ZR0mdjKkJoIoANtn4oTwDJ-dJXAD5cxyFIa7nFVBYzE', 2, NULL);
 
 --
 -- Index pour les tables déchargées
@@ -355,6 +461,14 @@ ALTER TABLE `movie`
   ADD KEY `FK_b2f8254966c91659c81d0632841` (`coordinatorId`);
 
 --
+-- Index pour la table `occupation`
+--
+ALTER TABLE `occupation`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `FK_968d63f3f5785f1b18cf12f9b27` (`ticketId`),
+  ADD KEY `FK_cf7bdad17646945559c8be3c9b8` (`seanceId`);
+
+--
 -- Index pour la table `picture`
 --
 ALTER TABLE `picture`
@@ -389,6 +503,29 @@ ALTER TABLE `seance`
   ADD KEY `FK_9499271b92a7bfadeb62e8ebc6a` (`coordinatorId`),
   ADD KEY `FK_c9e65f2a9a6ad0bb20cc15a3229` (`roomId`),
   ADD KEY `FK_40d201750836bb4a282bfd7435f` (`movieId`);
+
+--
+-- Index pour la table `seance_ticket_ticket`
+--
+ALTER TABLE `seance_ticket_ticket`
+  ADD PRIMARY KEY (`seanceId`,`ticketId`),
+  ADD KEY `IDX_80a6aa5e486744f72b5ce0759e` (`seanceId`),
+  ADD KEY `IDX_b91f4e630dd4a11c62576ed812` (`ticketId`);
+
+--
+-- Index pour la table `seat`
+--
+ALTER TABLE `seat`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `FK_3fa8f0e8b51be149c90ee8595e6` (`roomId`);
+
+--
+-- Index pour la table `seat_ticket_ticket`
+--
+ALTER TABLE `seat_ticket_ticket`
+  ADD PRIMARY KEY (`seatId`,`ticketId`),
+  ADD KEY `IDX_fb98a727ec3c755c1b7a23a7d7` (`seatId`),
+  ADD KEY `IDX_a2fa66e3b1f227086851b44c0c` (`ticketId`);
 
 --
 -- Index pour la table `ticket`
@@ -454,6 +591,12 @@ ALTER TABLE `movie`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
+-- AUTO_INCREMENT pour la table `occupation`
+--
+ALTER TABLE `occupation`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT pour la table `picture`
 --
 ALTER TABLE `picture`
@@ -478,16 +621,22 @@ ALTER TABLE `seance`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
+-- AUTO_INCREMENT pour la table `seat`
+--
+ALTER TABLE `seat`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
+
+--
 -- AUTO_INCREMENT pour la table `ticket`
 --
 ALTER TABLE `ticket`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT pour la table `token`
 --
 ALTER TABLE `token`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- Contraintes pour les tables déchargées
@@ -514,6 +663,13 @@ ALTER TABLE `movie`
   ADD CONSTRAINT `FK_b2f8254966c91659c81d0632841` FOREIGN KEY (`coordinatorId`) REFERENCES `coordinator` (`id`);
 
 --
+-- Contraintes pour la table `occupation`
+--
+ALTER TABLE `occupation`
+  ADD CONSTRAINT `FK_968d63f3f5785f1b18cf12f9b27` FOREIGN KEY (`ticketId`) REFERENCES `ticket` (`id`),
+  ADD CONSTRAINT `FK_cf7bdad17646945559c8be3c9b8` FOREIGN KEY (`seanceId`) REFERENCES `seance` (`id`);
+
+--
 -- Contraintes pour la table `picture`
 --
 ALTER TABLE `picture`
@@ -535,17 +691,30 @@ ALTER TABLE `seance`
   ADD CONSTRAINT `FK_c9e65f2a9a6ad0bb20cc15a3229` FOREIGN KEY (`roomId`) REFERENCES `room` (`id`);
 
 --
+-- Contraintes pour la table `seance_ticket_ticket`
+--
+ALTER TABLE `seance_ticket_ticket`
+  ADD CONSTRAINT `FK_80a6aa5e486744f72b5ce0759e2` FOREIGN KEY (`seanceId`) REFERENCES `seance` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `FK_b91f4e630dd4a11c62576ed8121` FOREIGN KEY (`ticketId`) REFERENCES `ticket` (`id`);
+
+--
+-- Contraintes pour la table `seat`
+--
+ALTER TABLE `seat`
+  ADD CONSTRAINT `FK_3fa8f0e8b51be149c90ee8595e6` FOREIGN KEY (`roomId`) REFERENCES `room` (`id`);
+
+--
+-- Contraintes pour la table `seat_ticket_ticket`
+--
+ALTER TABLE `seat_ticket_ticket`
+  ADD CONSTRAINT `FK_a2fa66e3b1f227086851b44c0c0` FOREIGN KEY (`ticketId`) REFERENCES `ticket` (`id`),
+  ADD CONSTRAINT `FK_fb98a727ec3c755c1b7a23a7d77` FOREIGN KEY (`seatId`) REFERENCES `seat` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Contraintes pour la table `ticket`
 --
 ALTER TABLE `ticket`
   ADD CONSTRAINT `FK_9415159cddf283b7e44be899be8` FOREIGN KEY (`clientId`) REFERENCES `client` (`id`);
-
---
--- Contraintes pour la table `ticket_seance_seance`
---
-ALTER TABLE `ticket_seance_seance`
-  ADD CONSTRAINT `FK_8554c2d72d86e76aa72149c157e` FOREIGN KEY (`seanceId`) REFERENCES `seance` (`id`),
-  ADD CONSTRAINT `FK_bf5c880956bf79557b7b62597d7` FOREIGN KEY (`ticketId`) REFERENCES `ticket` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Contraintes pour la table `token`
