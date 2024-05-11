@@ -62,7 +62,7 @@ export const initRoutes = (app: express.Express) => {
             const validationResult = LoginClientValidation.validate(req.body)
             if (validationResult.error) {
                 res.status(400).send(generateValidationErrorMessage(validationResult.error.details))
-                return
+                return 
             }
             const loginClientRequest = validationResult.value
 
@@ -240,18 +240,15 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).send({ error: "Internal error" })
         }
     })
-    app.put("/movies/:id", async (req: Request, res: Response) => {
+    app.patch("/movies/:id", async (req: Request, res: Response) => {
         const validation = updateMovieValidation.validate({ ...req.params, ...req.body });
         const movieUsecase = new MovieUsecase(AppDataSource);
-
 
         if (validation.error) {
             res.status(400).send(generateValidationErrorMessage(validation.error.details));
             return;
         }
-    
         const updateMovieRequest: UpdateMovieRequest = validation.value;
-    
         try {
             const movieUpdated = await movieUsecase.updateMovie(updateMovieRequest.id, updateMovieRequest);
             if (!movieUpdated) {
@@ -260,11 +257,8 @@ export const initRoutes = (app: express.Express) => {
             }
             res.status(200).send(movieUpdated);
         } catch (error: any) {
-            if (error.message.includes("Les séances suivantes ne respectent pas")) {
-                res.status(409).send({ error: error.message });
-            } else {
-                res.status(500).send({ error: "Internal error" });
-            }
+            console.error("Internal error:", error);
+            res.status(500).send({ error: "Internal error" });
         }
     });
     

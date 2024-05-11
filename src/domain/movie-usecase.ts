@@ -28,33 +28,48 @@ export class MovieUsecase {
         }
     }
 
-    async updateMovie(id: number, { name, duration }: UpdateMovieParams): Promise<Movie | null> {
+    async updateMovie(id: number, { name, duration }: UpdateMovieParams): Promise<Movie | null | string> {
         const repo = this.db.getRepository(Movie);
-        const seanceRepo = this.db.getRepository(Seance);
-
-        const movieFound = await repo.findOneBy({ id });
+        const repoS = this.db.getRepository(Seance);
+        const movieFound = await repo.findOne({ 
+            where: { id },
+            relations: ['seance']
+        });
+        
         if (!movieFound) return null;
-
-        // Vérifier les séances associées
-        if (duration !== undefined) {
-            const associatedSeances = await seanceRepo.find({ where: { movie: movieFound } });
-            const incompatibleSeances = associatedSeances.filter(seance => seance.getDuration() < duration + 15); // Inclure 15 minutes de publicité
-
-            if (incompatibleSeances.length > 0) {
-                throw new Error(
-                    `Les séances suivantes ne respectent pas la nouvelle durée du film :
-                    ${incompatibleSeances.map(s => `Seance ID: ${s.id}, Start: ${s.starting}, End: ${s.ending}`).join(", ")}.`
-                );
+    
+        if (duration) {
+            const seances = movieFound.seance;
+            const conflictingSeance = this.findConflictingSeance(seances, duration);
+    
+            if (conflictingSeance) {
+                return `Cette opération sur la seance ${conflictingSeance[0]} affecte le debut de la séance de ${conflictingSeance[1]} et donc celles d'après`;
             }
-
+    
+            seances.forEach(seance => {
+                seance.ending = new Date(seance.starting.getTime() + duration * 60000);
+            });
+            const updatedSeances = await repoS.save(seances);
             movieFound.duration = duration;
         }
-
+    
         if (name) {
             movieFound.name = name;
-        }
-
-        const movieUpdated = await repo.save(movieFound);
-        return movieUpdated;
+        } 
+    
+        const updatedMovie = await repo.save(movieFound);
+        return updatedMovie;
     }
+    
+    private findConflictingSeance(seances: Seance[], duration: number): Seance[] | undefined {
+        for(let i=0;i<seances.length-1;i++){
+            for(let j=i+1;j<seances.length;j++){
+                if(seances[i].starting.getTime()+duration*60000>=seances[j].starting.getTime()){
+                    return [seances[i],seances[j]]
+                }
+            }
+        }
+        return undefined;
+    }
+    
 }
