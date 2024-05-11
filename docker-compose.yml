@@ -11,14 +11,14 @@ services:
       - NODE_ENV=development
     depends_on:
       - mysql-db
-
+ 
   mysql-db:
     image: mysql:latest
     environment:
-      MYSQL_ROOT_PASSWORD: your_password
-      MYSQL_DATABASE: your_database
-      MYSQL_USER: your_username
-      MYSQL_PASSWORD: your_password
+      MYSQL_ROOT_PASSWORD: Thamilabkr4&
+      MYSQL_DATABASE: Cinema
+      MYSQL_USER: Thamila_Achat
+      MYSQL_PASSWORD: Thamilabkr4&
     ports:
       - "3306:3306"
     volumes:
