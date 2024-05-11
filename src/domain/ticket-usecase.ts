@@ -65,7 +65,7 @@ export class TicketUsecase {
 
         return { client, seance };
     }
-    async useTicketForSeance(ticketId: number, seanceId: number): Promise<any> {
+     async useTicketForSeance(ticketId: number, seanceId: number): Promise<any> {
         const ticketRepo = this.db.getRepository(Ticket);
         const ticket = await ticketRepo.findOneBy({ id: ticketId });
     
@@ -103,6 +103,7 @@ export class TicketUsecase {
         };
     }
     
+ 
     async createTicket(ticketRequest: TicketRequest): Promise<Ticket | null> {
         const validation = await this.validateTicketRequest(ticketRequest);
         if (!validation) return null;
