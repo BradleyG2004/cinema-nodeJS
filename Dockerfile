@@ -14,4 +14,4 @@ RUN npm install
 
 EXPOSE 3000
 
-CMD ["nodemon", "-e", "ts", "--exec", "ts-node", "src/index.ts"]
+CMD ["sh", "-c", "while ! nc -z mysql-db 3306; do sleep 1; done; nodemon -e ts --exec ts-node src/index.ts"]

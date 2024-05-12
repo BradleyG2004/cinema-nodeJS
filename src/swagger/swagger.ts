@@ -38,6 +38,8 @@ export function swaggerDocs(app: Express, port: number) {
     res.send(swaggerSpec);
   });
 
-  console.log(`Docs available at http://localhost:${port}/docs`);
+  // console.log(`Docs available at http://localhost:${port}/docs`);
+  console.log(`Docs available at https://cinema-nodejs.onrender.com/docs`);
+
 }
 export default swaggerDocs
