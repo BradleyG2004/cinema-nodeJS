@@ -30,4 +30,5 @@ Pour construire et démarrer l'application avec Docker :
  
 docker-compose up --build
 
-L'application est accessible via http://localhost:3000 une fois démarrée. Consultez la documentation de l'API pour plus de détails sur http://localhost:3000/api-docs pour une interface Swagger interactive.
+L'application est accessible via https://cinema-nodejs.onrender.com:3000 une fois démarrée. 
+Consultez la documentation de l'API pour plus de détails sur https://cinema-nodejs.onrender.com/docs pour une interface Swagger interactive.
