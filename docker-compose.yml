@@ -16,7 +16,7 @@ services:
     image: mysql:latest
     environment:
       MYSQL_ROOT_PASSWORD: Thamilabkr4&
-      MYSQL_DATABASE: Cinema
+      MYSQL_DATABASE: your_database
       MYSQL_USER: Thamila_Achat
       MYSQL_PASSWORD: Thamilabkr4&
     ports:
