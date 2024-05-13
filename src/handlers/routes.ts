@@ -1880,8 +1880,7 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
  */
  
 
-    //récupérer le détail d'une transaction
-    app.get("/transactions/:id", combMiddleware, async (req: Request, res: Response) => {
+     app.get("/transactions/:id", combMiddleware, async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
             const transactionId = parseInt(id, 10);
@@ -1955,7 +1954,8 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
             res.status(500).json({ error: "Internal server error" });
         }
     });*/
-
+   
+    
     app.get("/statistiques", async (req: Request, res: Response) => {
         try {
 

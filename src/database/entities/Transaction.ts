@@ -6,7 +6,7 @@ import { Eaccount } from "./eaccount";
 export class Transaction {
     @PrimaryGeneratedColumn()
     id!: number;
-
+     
     @Column({ type: "decimal", precision: 10, scale: 2, default: 0.00 })
     amount!: number;
 
@@ -15,6 +15,9 @@ export class Transaction {
 
     @Column({ type: "datetime", default: () => "CURRENT_TIMESTAMP" })
     createdAt!: Date;
+     
+    @Column()
+    description!: string;
 
     @ManyToOne(() => Client, (client) => client.transactions)
     client!: Client

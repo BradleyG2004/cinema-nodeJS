@@ -2,6 +2,7 @@ import { DataSource } from "typeorm";
 import { Ticket ,TicketType} from "../database/entities/ticket";
 import { Client } from "../database/entities/client";
 import { Seance } from "../database/entities/seance";
+import { Transaction } from "../database/entities/Transaction";
 
 export interface ListTicketFilter {
     limit: number;
@@ -52,19 +53,7 @@ export class TicketUsecase {
         return ticketUpdated;
     }
   
-    async validateTicketRequest(ticketRequest: TicketRequest): Promise<{ client: Client; seance: Seance; } | null> {
-        const clientRepo = this.db.getRepository(Client);
-        const seanceRepo = this.db.getRepository(Seance);
-
-        const client = await clientRepo.findOneBy({ id: ticketRequest.clientId });
-        const seance = await seanceRepo.findOneBy({ id: ticketRequest.seanceId });
-
-        if (!client || !seance) {
-            return null;
-        }
-
-        return { client, seance };
-    }
+ 
      async useTicketForSeance(ticketId: number, seanceId: number): Promise<any> {
         const ticketRepo = this.db.getRepository(Ticket);
         const ticket = await ticketRepo.findOneBy({ id: ticketId });
@@ -104,24 +93,67 @@ export class TicketUsecase {
     }
     
  
-    async createTicket(ticketRequest: TicketRequest): Promise<Ticket | null> {
-        const validation = await this.validateTicketRequest(ticketRequest);
-        if (!validation) return null;
-
-        const { client, seance } = validation;
-        const ticketRepo = this.db.getRepository(Ticket);
-
-        const newTicket = ticketRepo.create({
-            client,
-            seance,
-            type: ticketRequest.type,
-            seatNumber: ticketRequest.seatNumber,
-            isValid: ticketRequest.isValid ?? true
-        });
-
-        return await ticketRepo.save(newTicket);
+    async createTicket(ticketRequest: TicketRequest): Promise<Ticket | string> {
+        try {
+             const validation = await this.validateTicketRequest(ticketRequest);
+            if (!validation) return "Données de ticket invalides";
+    
+            const { client, seance } = validation;
+    
+             const ticketPrice = this.determineTicketPrice(ticketRequest.type, seance);
+    
+            if (client.balance < ticketPrice) {
+                return "Solde insuffisant pour l'achat du billet";
+            }
+    
+             const clientRepo = this.db.getRepository(Client);
+            client.balance -= ticketPrice;
+            await clientRepo.save(client);
+    
+             const transRepo = this.db.getRepository(Transaction);
+            const transaction = transRepo.create({
+                amount: ticketPrice,
+                type: "ticket_purchase",
+                client: client,
+                createdAt: new Date()
+            });
+            await transRepo.save(transaction);
+    
+             const ticketRepo = this.db.getRepository(Ticket);
+            const newTicket = ticketRepo.create({
+                client,
+                seance,
+                type: ticketRequest.type,
+                seatNumber: ticketRequest.seatNumber,
+                isValid: ticketRequest.isValid ?? true,
+                createdAt: new Date()
+            });
+    
+            return await ticketRepo.save(newTicket);
+        } catch (error) {
+            console.error("Erreur lors de la création du billet:", error);
+            return "Erreur interne du serveur";
+        }
     }
-
+    
+     async validateTicketRequest(ticketRequest: TicketRequest): Promise<{client: Client, seance: Seance} | null> {
+        const clientRepo = this.db.getRepository(Client);
+        const client = await clientRepo.findOne({ where: { id: ticketRequest.clientId } });
+        if (!client) {
+            console.error("Client introuvable");
+            return null;
+        }
+    
+        const seanceRepo = this.db.getRepository(Seance);
+        const seance = await seanceRepo.findOne({ where: { id: ticketRequest.seanceId } });
+        if (!seance) {
+            console.error("Séance introuvable");
+            return null;
+        }
+    
+        return { client, seance };
+    }
+    
     async deleteTicket(id: number): Promise<void> {
         const ticketRepo = this.db.getRepository(Ticket);
         const ticketToDelete = await ticketRepo.findOneBy({ id });
@@ -129,4 +161,20 @@ export class TicketUsecase {
             await ticketRepo.remove(ticketToDelete);
         }
     }
+
+    determineTicketPrice(ticketType: TicketType, seance: Seance): number {
+        const basePrice = 10;  
+        let priceMultiplier = 1; 
+
+        if (ticketType === TicketType.super) {
+            priceMultiplier = 2; 
+        }
+    
+         if (seance.starting.getHours() < 12) {
+            priceMultiplier *= 0.8;  
+        }
+    
+        return basePrice * priceMultiplier;
+    }
+    
 }

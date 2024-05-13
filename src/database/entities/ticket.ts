@@ -39,17 +39,18 @@ import { Seance } from "./seance";
         type: TicketType;
     
     
-  
-
-
-    constructor(id: number, seance:Seance, createdAt:Date, client: Client,type:TicketType,seatNumber:number,isValid:boolean,sessionsUsed: number) {
-        this.id = id
-        this.createdAt=createdAt
-        this.client = client
-        this.type=type
-        this.seance=seance
-        this.isValid=isValid
-        this.seatNumber=seatNumber
-        this.sessionsUsed=sessionsUsed
+       @Column("float")
+        price: number;   
+    
+        constructor(id: number, seance: Seance, createdAt: Date, client: Client, type: TicketType, seatNumber: number, isValid: boolean, sessionsUsed: number, price: number) {
+            this.id = id;
+            this.createdAt = createdAt;
+            this.client = client;
+            this.type = type;
+            this.seance = seance;
+            this.isValid = isValid;
+            this.seatNumber = seatNumber;
+            this.sessionsUsed = sessionsUsed;
+            this.price = price;  
+        }
     }
-}

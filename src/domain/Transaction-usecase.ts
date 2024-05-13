@@ -67,68 +67,107 @@ export class TransactionUsecase {
                 relations: ['client']
             });
             if (!token) return "no token";
-
+    
             const client = token.client;
-
+    
             const eaccountRepo = this.db.getRepository(Eaccount);
-            const eaccount = await eaccountRepo.findOne({where:{id:params.eaccount},relations: ['transactions'] });
+            const eaccount = await eaccountRepo.findOne({where: {id: params.eaccount}, relations: ['transactions']});
             if (!eaccount) return "no eaccount";
-
-            if(params.type=="deposit"){
-                if(eaccount.balance>=params.amount){
-                    client.balance+=params.amount
-                    eaccount.balance-=params.amount
-                    await eaccountRepo.save(eaccount);
-
-                    const clientRepo = this.db.getRepository(Client);
-                    const cliupdt = await clientRepo.findOne({where:{id:client.id}});
-                    if (!cliupdt) return null;
-
-                    cliupdt.balance=client.balance;
-                    await clientRepo.save(cliupdt);
-
+    
+            // Gestion de l'achat de billets
+            if (params.type === "ticket_purchase") {
+                const ticketPrice = 10; // Prix fixe pour un billet
+                if (client.balance >= ticketPrice) {
+                    client.balance -= ticketPrice;  
+    
                     const transRepo = this.db.getRepository(Transaction);
-                    const transactionn = new Transaction();
-                    transactionn.amount=params.amount
-                    transactionn.client=cliupdt
-                    transactionn.eaccount=eaccount
-                    transactionn.type=params.type
-                    await transRepo.save(transactionn);
-                    return  transactionn
-                }else{
-                   return  "Operation impossible"
+                    const transaction = new Transaction();
+                    transaction.amount = ticketPrice;
+                    transaction.type = "ticket_purchase";
+                    transaction.client = client;
+                    transaction.eaccount = eaccount;  
+                    await transRepo.save(transaction);
+    
+                    const clientRepo = this.db.getRepository(Client);
+                    await clientRepo.save(client);  
+    
+                    return transaction;
+                } else {
+                    return "Solde insuffisant pour l'achat du billet";
                 }
-
-            }else if(params.type=="withdrawal"){
-                if(client.balance>=params.amount){
-                    client.balance-=params.amount
-                    eaccount.balance+=params.amount
+            }
+    
+            // Gestion des dépôts
+            if (params.type == "deposit") {
+                if (eaccount.balance >= params.amount) {
+                    client.balance += params.amount;
+                    eaccount.balance -= params.amount;
+                    await eaccountRepo.save(eaccount);
+    
+                    const clientRepo = this.db.getRepository(Client);
+                    const updatedClient = await clientRepo.save(client);
+    
+                    const transRepo = this.db.getRepository(Transaction);
+                    const transaction = new Transaction();
+                    transaction.amount = params.amount;
+                    transaction.client = updatedClient;
+                    transaction.eaccount = eaccount;
+                    transaction.type = params.type;
+                    await transRepo.save(transaction);
+                    
+                    return transaction;
+                } else {
+                    return "Opération impossible, fonds insuffisants dans le eaccount";
+                }
+            }
+    
+            // Gestion des retraits
+            if (params.type == "withdrawal") {
+                if (client.balance >= params.amount) {
+                    client.balance -= params.amount;
+                    eaccount.balance += params.amount;
                     await eaccountRepo.save(eaccount);
                     
                     const clientRepo = this.db.getRepository(Client);
-                    const cliupdt = await clientRepo.findOne({where:{id:client.id}});
-                    if (!cliupdt) return null;
-                    cliupdt.balance=client.balance;
-                    await clientRepo.save(cliupdt);
-
+                    const updatedClient = await clientRepo.save(client);
+    
                     const transRepo = this.db.getRepository(Transaction);
-                    const transactionn = new Transaction();
-                    transactionn.amount=params.amount
-                    transactionn.client=cliupdt
-                    transactionn.eaccount=eaccount
-                    transactionn.type=params.type
-                    await transRepo.save(transactionn);
-                    return  transactionn
-                }else{
-                   return  "Operation impossible"
+                    const transaction = new Transaction();
+                    transaction.amount = params.amount;
+                    transaction.client = updatedClient;
+                    transaction.eaccount = eaccount;
+                    transaction.type = params.type;
+                    await transRepo.save(transaction);
+                    
+                    return transaction;
+                } else {
+                    return "Opération impossible, solde insuffisant";
                 }
             }
-            return "Operation non reconnue "+params.type
+    
+            return "Type d'opération non reconnu: " + params.type;
         } catch (error) {
-            console.error("Error creating transaction:", error);
+            console.error("Erreur lors de la création de la transaction :", error);
             return null;
         }
     }
+    async getCurrentBalance(clientId: number): Promise<number | string> {
+        const clientRepo = this.db.getRepository(Client);
+        const client = await clientRepo.findOne({ where: { id: clientId } });
+        if (!client) return "Client introuvable";
+    
+        return client.balance;
+    }
+    
+     async getTransactionHistory(clientId: number): Promise<Transaction[] | string> {
+        const transRepo = this.db.getRepository(Transaction);
+        const transactions = await transRepo.find({
+            where: { client: { id: clientId } },
+            relations: ['client']
+        });
+        return transactions;
+    }
+
 
     // async updateTransaction(id: number, amount: number): Promise<Transaction | null> {
     //     try {
