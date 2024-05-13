@@ -1,5 +1,5 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
-import { Client } from "./client";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Client } from "./client"; // Assurez-vous d'importer correctement l'entité Client
 
 @Entity()
 export class Transaction {
@@ -7,20 +7,17 @@ export class Transaction {
     id!: number;
 
     @Column({ type: "decimal", precision: 10, scale: 2, default: 0.00 })
-    amount: number;
+    amount!: number;
 
-    @Column({ type: "enum", enum: ["deposit", "withdrawal", "ticket_purchase"] })
-    type: string;
+    @Column({ type: "enum", enum: ["deposit", "withdrawal", "ticket_purchase"], default: "deposit" })
+    type!: string;
 
-    @ManyToOne(() => Client, client => client.transactions)
-    client!: Client;
+    @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+    createdAt!: Date;
 
-    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
-    createdAt: Date;
+    @Column({ nullable: true })
+    clientId!: number;
 
-    constructor(amount: number, type: string, client: Client) {
-        this.amount = amount;
-        this.type = type;
-        this.createdAt = new Date();
-    }
+    @ManyToOne(() => Client, client => client.transactions) // Utilisez ManyToOne pour définir la relation
+    client!: Client; // Utilisez le nom approprié pour la propriété de relation
 }

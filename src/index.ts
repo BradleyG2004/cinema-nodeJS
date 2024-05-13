@@ -2,6 +2,7 @@ import express from "express";
 import { initRoutes } from "./handlers/routes";
 import { AppDataSource } from "./database/database";
 import swaggerDocs from "./swagger/swagger";
+import path from "path";
 
 
 const main = async () => {
@@ -17,6 +18,9 @@ const main = async () => {
         console.error("Cannot contact database")
         process.exit(1)
     }
+
+    const publicDirPath = path.join(__dirname, 'frontend');
+    app.use(express.static(publicDirPath));
 
     app.use(express.json())
     initRoutes(app)

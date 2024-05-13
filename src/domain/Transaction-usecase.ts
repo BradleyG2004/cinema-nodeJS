@@ -1,6 +1,6 @@
-import { DataSource, Repository } from "typeorm";
-import { Transaction } from "../database/entities/Transaction";
-import { Client } from "../database/entities/client";
+import {DataSource, Repository} from "typeorm";
+import {Transaction} from "../database/entities/Transaction";
+import {Client} from "../database/entities/client";
 
 export interface CreateTransactionParams {
     amount: number;
@@ -46,11 +46,10 @@ export class TransactionUsecase {
 
     async getAllTransactions(): Promise<Transaction[]> {
         try {
-            const transactions = await this.transactionRepo.find();
-            return transactions;
+            return await this.transactionRepo.find();
         } catch (error) {
             console.error("Error fetching all transactions:", error);
-            return [];
+            throw new Error("Failed to fetch transactions");
         }
     }
 

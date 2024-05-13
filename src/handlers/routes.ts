@@ -599,10 +599,14 @@ export const initRoutes = (app: express.Express) => {
     }
 });
 
-    //récupérer le détail d'une transaction
     app.get("/api/transactions/:id", async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
+
+            if (!id || isNaN(parseInt(id, 10))) {
+                return res.status(400).json({ error: 'Invalid transaction ID' });
+            }
+
             const transactionId = parseInt(id, 10);
 
             const transactionUsecase = new TransactionUsecase(AppDataSource);
@@ -618,6 +622,26 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).json({ error: "Internal server error" });
         }
     });
+
+    app.get("/api/transactions", async (req: Request, res: Response) => {
+        try {
+            const transactionUsecase = new TransactionUsecase(AppDataSource);
+            const transactions = await transactionUsecase.getAllTransactions();
+
+            res.status(200).json(transactions);
+        } catch (error) {
+            console.error("Error fetching transactions:", error);
+            res.status(500).json({ error: "Internal server error" });
+        }
+    });
+
+
+
+    /*{
+        "amount" : 10,
+        "type" : "deposit",
+        "clientId" : 5
+    }*/
 
 
 

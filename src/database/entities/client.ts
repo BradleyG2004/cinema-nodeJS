@@ -6,37 +6,28 @@ import { Transaction } from "./Transaction";
 @Entity()
 export class Client {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @Column({ unique: true })
-    email: string;
+    email!: string;
 
     @Column()
-    password: string;
+    password!: string;
 
     @Column({ default: 0 })
-    balance: number;
+    balance!: number;
 
     @CreateDateColumn({ type: "datetime" })
-    createdAt: Date;
+    createdAt!: Date;
 
     @OneToMany(() => Token, token => token.client)
-    tokens: Token[];
+    tokens!: Token[];
 
     @OneToMany(() => Ticket, ticket => ticket.client)
-    tickets: Ticket[];
+    tickets!: Ticket[];
 
     @OneToMany(() => Transaction, transaction => transaction.client)
-    transactions: Transaction[];
+    transactions!: Transaction[]; // Supprimer l'initialisation
 
-    constructor(id: number, email: string, password: string, balance: number = 0, createdAt: Date = new Date(), tokens: Token[] = [], tickets: Ticket[] = [], transactions: Transaction[] = []) {
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.balance = balance;
-        this.createdAt = createdAt;
-        this.tokens = tokens;
-        this.tickets = tickets;
-        this.transactions = transactions;
-    }
+    // Vous n'avez pas besoin d'initialiser `transactions` dans le constructeur
 }

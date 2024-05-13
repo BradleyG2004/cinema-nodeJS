@@ -17,7 +17,7 @@ export class Ticket {
     @CreateDateColumn({type: "datetime"}) 
     createdAt: Date
 
-    @ManyToOne(() => Client, client => client.ticket)
+    @ManyToOne(() => Client, client => client.tickets)
     client: Client;
     
     @Column({ type: 'enum', enum: tickettype})
