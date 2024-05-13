@@ -1822,7 +1822,7 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
  */
  
  
-    app.post("/transactions", combMiddleware, async (req: Request, res: Response) => {
+    app.post("/transactions", async (req: Request, res: Response) => {
         const validation = transactionValidation.validate({ ...req.params, ...req.body, autorization: req.headers.authorization?.split(" ")[1] })
 
         if (validation.error) {
@@ -1832,8 +1832,7 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
 
         try {
             
-            // const { amount, type, clientId } = req.body;
-            const TransacRequest = validation.value
+             const TransacRequest = validation.value
             const transactionUsecase = new TransactionUsecase(AppDataSource);
             const createdTransaction = await transactionUsecase.createTransaction(TransacRequest);
 

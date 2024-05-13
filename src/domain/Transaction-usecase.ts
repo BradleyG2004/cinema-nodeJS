@@ -75,31 +75,9 @@ export class TransactionUsecase {
             const eaccount = await eaccountRepo.findOne({where: {id: params.eaccount}, relations: ['transactions']});
             if (!eaccount) return "no eaccount";
     
-            // Gestion de l'achat de billets
-            if (params.type === "ticket_purchase") {
-                const ticketPrice = 10; // Prix fixe pour un billet
-                if (client.balance >= ticketPrice) {
-                    client.balance -= ticketPrice;  
+          
     
-                    const transRepo = this.db.getRepository(Transaction);
-                    const transaction = new Transaction();
-                    transaction.amount = ticketPrice;
-                    transaction.type = "ticket_purchase";
-                    transaction.client = client;
-                    transaction.eaccount = eaccount;  
-                    await transRepo.save(transaction);
-    
-                    const clientRepo = this.db.getRepository(Client);
-                    await clientRepo.save(client);  
-    
-                    return transaction;
-                } else {
-                    return "Solde insuffisant pour l'achat du billet";
-                }
-            }
-    
-            // Gestion des dépôts
-            if (params.type == "deposit") {
+             if (params.type == "deposit") {
                 if (eaccount.balance >= params.amount) {
                     client.balance += params.amount;
                     eaccount.balance -= params.amount;
