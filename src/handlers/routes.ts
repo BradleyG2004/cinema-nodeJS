@@ -31,6 +31,7 @@ import { Transaction } from "../database/entities/Transaction";
 import { TransactionRequest, transactionIdValidation, TransactionIdRequest, transactionValidation } from "./validators/Transaction-validator";
 import { TransactionUsecase } from "../domain/Transaction-usecase";
 import { Seance } from "../database/entities/seance";
+import { AttendanceUseCase } from "../domain/attendace-usecase";
 
 export const initRoutes = (app: express.Express) => {
   /**
@@ -1785,15 +1786,14 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
     });
  
  
-
 /**
  * @openapi
  * /transactions:
  *   post:
  *     tags:
  *       - Transactions
- *     summary: Create a new transaction
- *     description: Registers a new financial transaction in the system based on the provided data.
+ *     summary: Créer une nouvelle transaction
+ *     description: Enregistre une nouvelle transaction financière dans le système en fonction des données fournies.
  *     requestBody:
  *       required: true
  *       content:
@@ -1802,25 +1802,25 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
  *             $ref: '#/components/schemas/TransactionRequest'
  *     responses:
  *       201:
- *         description: Transaction successfully created.
+ *         description: Transaction créée avec succès.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Transaction'
  *       400:
- *         description: Validation error on request.
+ *         description: Erreur de validation de la requête.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  *       500:
- *         description: Internal server error.
+ *         description: Erreur interne du serveur.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
- 
+
  
     app.post("/transactions", async (req: Request, res: Response) => {
         const validation = transactionValidation.validate({ ...req.params, ...req.body, autorization: req.headers.authorization?.split(" ")[1] })
@@ -2045,20 +2045,45 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
             return res.status(500).json({ error: "Internal server error" });
         }
     });
-    app.get("/statistiques", async (req: Request, res: Response) => {
+ /**
+ * @swagger
+ * /stats:
+ *   get:
+ *     summary: Obtenir les statistiques d'affluence globales.
+ *     description: Récupère les statistiques d'affluence globales pour le cinéma.
+ *     responses:
+ *       200:
+ *         description: Statistiques d'affluence récupérées avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalSeances:
+ *                   type: number
+ *                   description: Nombre total de séances.
+ *                 totalAttendees:
+ *                   type: number
+ *                   description: Nombre total de spectateurs.
+ *                 averageAttendancePerSeance:
+ *                   type: number
+ *                   description: Moyenne d'affluence par séance.
+ *       500:
+ *         description: Erreur interne du serveur.
+ */
+
+     app.get("/stats", async (req: Request, res: Response) => {
         try {
+            const attendanceUseCase = new AttendanceUseCase(AppDataSource);
 
-            const seanceUsecase = new SeanceUsecase(AppDataSource);
-
-            const frequentationStats = await seanceUsecase.getFrequentationStatistics();
-
-            res.status(200).json(frequentationStats);
+          const attendanceStats = await attendanceUseCase.getAttendanceStats();
+          res.status(200).json(attendanceStats);
         } catch (error) {
-            console.error("Error fetching attendance statistics:", error);
-            res.status(500).json({ error: "Internal server error" });
+          console.error("Error getting attendance statistics:", error);
+          res.status(500).json({ error: "Internal server error" });
         }
-    });
-
+      });
+      
 
 
 
