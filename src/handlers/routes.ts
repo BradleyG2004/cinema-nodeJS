@@ -1786,9 +1786,42 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
  
  
 
-
-
-
+/**
+ * @openapi
+ * /transactions:
+ *   post:
+ *     tags:
+ *       - Transactions
+ *     summary: Create a new transaction
+ *     description: Registers a new financial transaction in the system based on the provided data.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TransactionRequest'
+ *     responses:
+ *       201:
+ *         description: Transaction successfully created.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Transaction'
+ *       400:
+ *         description: Validation error on request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+ 
+ 
     app.post("/transactions", combMiddleware, async (req: Request, res: Response) => {
         const validation = transactionValidation.validate({ ...req.params, ...req.body, autorization: req.headers.authorization?.split(" ")[1] })
 
@@ -1810,6 +1843,42 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
             res.status(500).json({ error: "Internal server error" });
         }
     });
+/**
+ * @openapi
+ * /transactions/{id}:
+ *   get:
+ *     tags:
+ *       - Transactions
+ *     summary: Retrieve a transaction by ID
+ *     description: Fetches a detailed view of a specific transaction by its unique ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The unique identifier of the transaction to retrieve.
+ *     responses:
+ *       200:
+ *         description: Transaction details retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Transaction'
+ *       404:
+ *         description: Transaction not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+ 
 
     //récupérer le détail d'une transaction
     app.get("/transactions/:id", combMiddleware, async (req: Request, res: Response) => {
@@ -1830,6 +1899,31 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
             res.status(500).json({ error: "Internal server error" });
         }
     });
+/**
+ * @openapi
+ * /transactions:
+ *   get:
+ *     tags:
+ *       - Transactions
+ *     summary: List all transactions
+ *     description: Returns a list of all transactions in the system.
+ *     responses:
+ *       200:
+ *         description: List of transactions retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Transaction'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+ 
 
     app.get("/transactions", combMiddleware, async (req: Request, res: Response) => {
         const validation = listSeanceValidation.validate(req.query)
