@@ -622,7 +622,18 @@ export const initRoutes = (app: express.Express) => {
     *       content:
     *         application/json:
     *           schema:
-    *             $ref: '#/components/schemas/TicketRequest'
+    *             type: object
+    *             properties:
+    *               seanceId:
+    *                 type: number
+    *               seatId:
+    *                 type: number
+    *               type:
+    *                 type: string
+    *             required:
+    *               - seanceId
+    *               - seatId
+    *               - type
     *     responses:
     *       201:
     *         description: Ticket successfully created
