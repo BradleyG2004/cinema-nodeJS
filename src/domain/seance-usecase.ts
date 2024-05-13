@@ -69,8 +69,7 @@ export class SeanceUsecase {
 
 
     async createSeance(start: Date, roomId: number, movieId: number, authorization: string): Promise<Seance | string | null> {
-        // Récupération du token et de l'utilisateur associé
-        const tokenRepo = this.db.getRepository(Token);
+         const tokenRepo = this.db.getRepository(Token);
         const token = await tokenRepo.findOne({
             where: { token: authorization },
             relations: ['coordinator']
@@ -78,18 +77,15 @@ export class SeanceUsecase {
         if (!token) return null;
         const user = token.coordinator;
 
-        // Récupération de la salle
-        const roomRepo = this.db.getRepository(Room);
+         const roomRepo = this.db.getRepository(Room);
         const room = await roomRepo.findOne({where:{id:roomId},relations: ['seance'] });
         if (!room) return null;
 
-        // Récupération du film
-        const movieRepo = this.db.getRepository(Movie);
+         const movieRepo = this.db.getRepository(Movie);
         const movie = await movieRepo.findOne({where:{id:movieId}, relations: ['seance'] });
         if (!movie) return null;
 
-        // Création de la séance
-        //on verif si il y en a deja d'autres en BD
+ 
         const count = await this.db.getRepository(Seance)
         .createQueryBuilder("seance")
         .getCount()
@@ -102,13 +98,11 @@ export class SeanceUsecase {
             seance.movie = movie;
             seance.coordinator = user;
 
-            // Sauvegarde de la séance
-            const seanceRepo = this.db.getRepository(Seance);
+             const seanceRepo = this.db.getRepository(Seance);
             await seanceRepo.save(seance);
             return seance;
         } else {
-            //on cherche celles du meme film
-            const rows = await this.db.getRepository(Seance)
+             const rows = await this.db.getRepository(Seance)
             .createQueryBuilder("seance")
             .where("seance.movieId = :value", { value: movieId })
             .getMany();

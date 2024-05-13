@@ -1954,8 +1954,98 @@ app.post("/seances",coordMiddleware, async (req: Request, res: Response) => {
             res.status(500).json({ error: "Internal server error" });
         }
     });*/
-   
+   /**
+ * @swagger
+ * /clients/{id}/history:
+ *   get:
+ *     summary: Récupérer l'historique des transactions d'un client.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           format: int64
+ *         description: ID du client dont vous souhaitez récupérer l'historique des transactions.
+ *     responses:
+ *       '200':
+ *         description: Historique des transactions récupéré avec succès.
+ *       '400':
+ *         description: Requête invalide, veuillez vérifier les paramètres de la requête.
+ *       '403':
+ *         description: Accès non autorisé à l'historique des transactions du client.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
+    app.get("/clients/:id/history", async (req, res) => {
+        const clientId = parseInt(req.params.id);
+
+        const validation = transactionValidation.validate({ ...req.params, ...req.body,autorization: req.headers.authorization?.split(" ")[1]})
+        if (validation.error) {
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
+            return
+        }
+        const getHistoryRequest = validation.value
+        try {
+            const transactionUsecase = new TransactionUsecase(AppDataSource);
+            const transactionHistory = await transactionUsecase.getTransactionHistory(clientId, getHistoryRequest.autorization);
     
+            if (typeof transactionHistory === "string") {
+                return res.status(403).json({ error: transactionHistory });
+            }
+    
+            return res.status(200).json(transactionHistory);
+        } catch (error) {
+            console.error("Error retrieving transaction history:", error);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+    });
+    /**
+ * @swagger
+ * /clients/{id}/amount:
+ *   get:
+ *     summary: Récupérer le solde actuel d'un client.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           format: int64
+ *         description: ID du client dont vous souhaitez récupérer le solde actuel.
+ *     responses:
+ *       '200':
+ *         description: Solde actuel récupéré avec succès.
+ *       '400':
+ *         description: Requête invalide, veuillez vérifier les paramètres de la requête.
+ *       '403':
+ *         description: Accès non autorisé au solde actuel du client.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
+    app.get("/clients/:id/amount", async (req, res) => {
+        const clientId = parseInt(req.params.id);
+         const validation = transactionValidation.validate({ ...req.params, ...req.body,autorization: req.headers.authorization?.split(" ")[1]})
+        if (validation.error) {
+            res.status(400).json(generateValidationErrorMessage(validation.error.details))
+            return
+        }
+        const getHistoryRequest = validation.value
+
+        try {
+            const transactionUsecase = new TransactionUsecase(AppDataSource);
+            const currentBalance = await transactionUsecase.getCurrentBalance(clientId, getHistoryRequest.autorization);
+    
+             if (typeof currentBalance === "string") {
+                return res.status(403).json({ error: currentBalance });
+            }
+    
+             return res.status(200).json({ balance: currentBalance });
+        } catch (error) {
+            console.error("Error retrieving current balance:", error);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+    });
     app.get("/statistiques", async (req: Request, res: Response) => {
         try {
 

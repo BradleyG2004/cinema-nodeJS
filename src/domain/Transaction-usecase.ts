@@ -4,6 +4,7 @@ import { Client } from "../database/entities/client";
 import { type } from "os";
 import { Token } from "../database/entities/token";
 import { Eaccount } from "../database/entities/eaccount";
+import { AppDataSource } from "../database/database";
 
 export interface CreateTransactionParams {
     eaccount:number,
@@ -151,22 +152,71 @@ export class TransactionUsecase {
             return null;
         }
     }
-    async getCurrentBalance(clientId: number): Promise<number | string> {
-        const clientRepo = this.db.getRepository(Client);
-        const client = await clientRepo.findOne({ where: { id: clientId } });
-        if (!client) return "Client introuvable";
-    
-        return client.balance;
-    }
-    
-     async getTransactionHistory(clientId: number): Promise<Transaction[] | string> {
-        const transRepo = this.db.getRepository(Transaction);
-        const transactions = await transRepo.find({
-            where: { client: { id: clientId } },
-            relations: ['client']
+    async getCurrentBalance(clientId: number, authorization: string): Promise<number | string> {
+         const tokenRepo = AppDataSource.getRepository(Token);
+        const token = await tokenRepo.findOne({
+            where: { token: authorization },
+            relations: ['client', 'coordinator']
         });
-        return transactions;
+    
+        if (!token) {
+            return "Unauthorized";  
+        }
+       
+        const user = token.client || token.coordinator;
+    
+         if (token.coordinator || (user.id !== clientId )) {
+            return "Unauthorized access to client's current balance";  
+        }
+    
+        try {
+             const clientRepo = AppDataSource.getRepository(Client);
+            const client = await clientRepo.findOne({ where: { id: clientId } });
+            
+            if (!client) {
+                return "Client not found";  
+            }
+    
+            return client.balance;
+        } catch (error) {
+            console.error("Error retrieving current balance:", error);
+            return "Internal server error";  
+        }
     }
+    
+    
+    async getTransactionHistory(clientId: number, authorization: string): Promise<Transaction[] | string> {
+        const tokenRepo = this.db.getRepository(Token);
+        const token = await tokenRepo.findOne({
+            where: { token: authorization },
+            relations: ['coordinator', 'client']
+        });
+    
+        if (!token) {
+            return "Unauthorized";  
+        }
+    
+         if (token.coordinator) {
+            const transRepo = this.db.getRepository(Transaction);
+            const transactions = await transRepo.find({
+                where: { client: { id: clientId } },
+                relations: ['client']
+            });
+            return transactions;
+        }
+    
+         if (token.client && token.client.id === clientId) {
+            const transRepo = this.db.getRepository(Transaction);
+            const transactions = await transRepo.find({
+                where: { client: { id: clientId } },
+                relations: ['client']
+            });
+            return transactions;
+        }
+    
+         return "Unauthorized access to client's transaction history";
+    }
+    
 
 
     // async updateTransaction(id: number, amount: number): Promise<Transaction | null> {
